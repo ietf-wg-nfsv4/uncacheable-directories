@@ -1,7 +1,7 @@
 ---
 title: Adding an Uncacheable Attribute to NFSv4.2
 abbrev: Uncacheable Attribute
-docname: draft-haynes-nfsv4-uncacheable-latest
+docname: draft-ietf-nfsv4-uncacheable-latest
 category: std
 date: {DATE}
 consensus: true
