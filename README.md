@@ -1,17 +1,17 @@
 # Adding an Uncacheable Attribute to NFSv4.2
 
-This is the working area for the individual Internet-Draft, "Adding an Uncacheable Attribute to NFSv4.2".
+This is the working area for the individual Internet-Draft, "Adding an Uncacheable Directory Attribute to NFSv4.2".
 
-* [Editor's Copy](https://ietf-wg-nfsv4.github.io/uncacheable/#go.draft-haynes-nfsv4-uncacheable.html)
-* [Datatracker Page](https://datatracker.ietf.org/doc/draft-haynes-nfsv4-uncacheable)
-* [Individual Draft](https://datatracker.ietf.org/doc/html/draft-haynes-nfsv4-uncacheable)
-* [Compare Editor's Copy to Individual Draft](https://ietf-wg-nfsv4.github.io/uncacheable/#go.draft-haynes-nfsv4-uncacheable.diff)
+* [Editor's Copy](https://ietf-wg-nfsv4.github.io/uncacheable-directories/#go.draft-ietf-nfsv4-uncacheable-directories.html)
+* [Datatracker Page](https://datatracker.ietf.org/doc/draft-ietf-nfsv4-uncacheable-directories)
+* [Individual Draft](https://datatracker.ietf.org/doc/html/draft-ietf-nfsv4-uncacheable-directories)
+* [Compare Editor's Copy to Individual Draft](https://ietf-wg-nfsv4.github.io/uncacheable-directories/#go.draft-ietf-nfsv4-uncacheable-directories.diff)
 
 
 ## Contributing
 
 See the
-[guidelines for contributions](https://github.com/ietf-wg-nfsv4/uncacheable/blob/main/CONTRIBUTING.md).
+[guidelines for contributions](https://github.com/ietf-wg-nfsv4/uncacheable-directories/blob/main/CONTRIBUTING.md).
 
 Contributions can be made by creating pull requests.
 The GitHub interface supports creating pull requests using the Edit (✏) button.

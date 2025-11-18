@@ -1,7 +1,7 @@
 ---
-title: Adding an Uncacheable Attribute to NFSv4.2
-abbrev: Uncacheable Attribute
-docname: draft-ietf-nfsv4-uncacheable-latest
+title: Adding an Uncacheable Directory Attribute to NFSv4.2
+abbrev: Uncacheable Directory Attribute
+docname: draft-ietf-nfsv4-uncacheable-directories-latest
 category: std
 date: {DATE}
 consensus: true
@@ -30,12 +30,9 @@ normative:
   RFC8174:
   RFC8178:
   RFC8881:
-  I-D.ietf-nfsv4-delstid:
+  RFC9754:
 
 informative:
-  open:
-    title: open and create files.
-    seriesinfo: Linux Programmer's Manual
   POSIX.1:
     title: The Open Group Base Specifications Issue 7
     seriesinfo: IEEE Std 1003.1, 2013 Edition
@@ -54,16 +51,15 @@ informative:
 --- abstract
 
 The Network File System version 4.2 (NFSv4.2) allows a client to
-cache both metadata and data for file objects, as well as metadata
-for directory objects.  While caching directory entries (dirents) can
-improve performance, it can also prevent the server from enforcing access
-control on individual dirents.  Similarly, caching file data can lead to
-performance issues if the cache hit rate is low.  This document introduces
-a new uncacheable attribute for NFSv4.  Files and dirents marked as
-uncacheable MUST NOT be stored in client-side caches.
-This ensures data consistency and integrity by requiring clients to
-always retrieve the most recent data directly from the server. This
-document extends NFSv4.2 (see RFC7862).
+cache both metadata for file and directory objects.  While caching
+directory entries (dirents) can improve performance, it can also
+prevent the server from enforcing access control on individual
+dirents.  This document introduces a new uncacheable directory
+attribute for NFSv4.2.  Dirents marked as uncacheable MUST NOT be
+stored in client-side caches.  This ensures data consistency and
+integrity by requiring clients to always retrieve the most recent
+data directly from the server. This document extends NFSv4.2 (see
+RFC7862).
 
 --- note_Note_to_Readers
 
@@ -72,7 +68,7 @@ on the NFSv4 working group mailing list (nfsv4@ietf.org),
 which is archived at
 [](https://mailarchive.ietf.org/arch/search/?email_list=nfsv4). Source
 code and issues list for this draft can be found at
-[](https://github.com/ietf-wg-nfsv4/uncacheable).
+[](https://github.com/ietf-wg-nfsv4/uncacheable-directories).
 
 Working Group information can be found at [](https://github.com/ietf-wg-nfsv4).
 
@@ -81,44 +77,32 @@ Working Group information can be found at [](https://github.com/ietf-wg-nfsv4).
 # Introduction
 
 With a remote filesystem, the client typically caches both directory
-entries (dirents) and file contents in order to improve performance.
-Several assumptions are made about the rate of change in the dirents
-and the number of clients trying to concurrently access a file.
-With NFSv4.2, this could theoretically be mitigated by directory
-delegations for the dirents and practically by file delegations
-for the file contents.
+entries (dirents) in order to improve performance.  Several assumptions
+are made about the rate of change in the dirents.  With NFSv4.2,
+this could theoretically be mitigated by directory delegations for
+the dirents.
 
-There are prior efforts to bypass both the dirent and file caching.
-Access Based Enumeration (ABE) is used in Server Message Block (SMB)
+There are prior efforts to bypass the dirent caching.  Access
+Based Enumeration (ABE) is used in Server Message Block (SMB)
 {{SMB2}} protocol to effectively limit the namespace visibility per
-user. In Highly Parallel Computing (HPC) workloads, file caching
-is bypassed in order to achieve consistent work flows.
+user.
 
-This document introduces the uncacheable attribute to NFSv4.2 to
-implement ABE and to bypass file caching on the client. As such,
-it is an OPTIONAL to implement attribute for NFSv4.2. However, if
-both the client and the server support this attribute, then the
-client MUST follow the semantics of uncacheable.[^2]
+This document introduces the uncacheable directory attribute to
+NFSv4.2 to implement ABE. As such, it is an OPTIONAL to implement
+attribute for NFSv4.2. However, if both the client and the server
+support this attribute, then the client MUST follow the semantics
+of uncacheable dirents.[^2]
 
 [^2]: What about mixed modes?
 
 A client can easily determine whether or not a server supports
-the uncacheable attribute with a simple GETATTR on any
+the uncacheable directory attribute with a simple GETATTR on any
 dirent. If the server does not support the uncacheable
 attribute, it will return an error of NFS4ERR_ATTRNOTSUPP.
 
 The only way that the server can determine that the client supports
 the attribute is if the client sends either a GETATTR or a SETATTR
-with the uncacheable attribute.
-
-While some argument could be made to introduce two new attributes,
-the functionality of the uncacheable attribute dictates which cache
-is to be bypassed. As ABE is concerned with walking the namespace,
-it is only applicable to be acted on dirents which are of type attribute value of
-NF4DIR. And as bypassing file caching is file based, it is only
-applicable for dirents which are of type attribute value of  NF4REG.[^1]
-
-[^1]: What about the other file types?
+with the uncacheable directory attribute.
 
 Using the process detailed in {{RFC8178}}, the revisions in this document
 become an extension of NFSv4.2 {{RFC7862}}. They are built on top of the
@@ -151,15 +135,13 @@ changes to be bunched together for writing to the server.
 Further, the definitions of the following terms are referenced as follows:
 
 - directory delegations ({{Section 10.9 of RFC8881}})
-- file delegations ({{Section 10.2 of RFC8881}})
 - GETATTR ({{Section 18.7 of RFC8881}})
 - hidden ({{Section 5.8.2.15 of RFC8881}})
 - Mandatory Access Control (MAC) ({{RFC4949}})
 - NF4DIR ({{Section 5.8.1.2 of RFC8881}})
-- NF4REG ({{Section 5.8.1.2 of RFC8881}})
 - NFS4ERR_ATTRNOTSUPP ({{Section 15.1.15.1 of RFC8881}}
 - mode ({{Section 6.2.4 of RFC8881}})
-- offline ({{Section 2 of I-D.ietf-nfsv4-delstid}})
+- offline ({{Section 2 of RFC9754}})
 - owner ({{Section 5.8.2.26 of RFC8881}})
 - owner_group ({{Section 5.8.2.27 of RFC8881}})
 - READDIR ({{Section 18.23 of RFC8881}})
@@ -209,55 +191,35 @@ then the determination of ABE MUST be done on the server.
 Since cached dirents are shared by all users on a client, and the
 client cannot determine access permissions for individual dirents,
 all users are presented with the same set of attributes. To address
-this, this document introduces the new uncacheable attribute. This
-attribute instructs the client not to cache the dirent for a file
-or directory object. Consequently, each time a client queries for
-these attributes, the server's response can be tailored to the
-specific user making the request.
+this, this document introduces the new uncacheable directory
+attribute. This attribute instructs the client not to cache the
+dirent for a file or directory object. Consequently, each time a
+client queries for these attributes, the server's response can be
+tailored to the specific user making the request.
 
 ## Uncacheable Dirents {#sec_dirents}
 
-If a file object or directory has the uncacheable attribute set,
-then the client MUST NOT cache its dirent attributes. This means
-that even if the client has previously retrieved the attributes for
-a user, it MUST query the server again for those attributes on
+If a file object or directory has the uncacheable directory attribute
+set, then the client MUST NOT cache its dirent attributes. This
+means that even if the client has previously retrieved the attributes
+for a user, it MUST query the server again for those attributes on
 subsequent requests. Additionally, the client MUST NOT share
 attributes between different users.
-
-# Caching of File Data
-
-In addition to caching metadata, clients can also cache file data.
-The uncacheable attribute also instructs the client to bypass its
-page cache for the file. This behavior is similar to using the
-O_DIRECT flag with the open call ({{open}}). This can be beneficial
-for files that are not shared or for files that do not exhibit
-access patterns suitable for caching.
-
-However, the real need for bypassing write caching is evident in
-HPC workloads. In general, these involve massive data transfers and
-require extremely low latency.  Write caching can introduce
-unpredictable latency, as data is buffered and flushed later.
-
-## Uncacheable Files {#sec_files}
-
-If a file object is marked as uncacheable, all modifications to
-the file MUST be immediately sent from the client to the server. In
-other words, the file data is also not cacheable.
 
 # XDR for Offline Attribute
 
 ~~~ xdr
 ///
-/// typedef bool            fattr4_uncacheable;
+/// typedef bool            fattr4_uncacheable_directory;
 ///
-/// const FATTR4_UNCACHEABLE            = 87;
+/// const FATTR4_UNCACHEABLE_DIRECTORY   = 88;
 ///
 ~~~
 
 # Extraction of XDR
 
 This document contains the external data representation (XDR)
-{{RFC4506}} description of the uncacheable attribute.  The XDR
+{{RFC4506}} description of the uncacheable directory attribute.  The XDR
 description is presented in a manner that facilitates easy extraction
 into a ready-to-compile format. To extract the machine-readable XDR
 description, use the following shell script:
@@ -291,11 +253,12 @@ should be placed in their appropriate sections within the existing XDR.
 For a given user A, a client MUST NOT make access decisions for
 uncacheable dirents retrieved for another user B. These decisions
 MUST be made by the server.  If the client is Labeled NFS aware
-({{RFC7204}}), then the client MUST locally enforce the MAC security policies.
+({{RFC7204}}), then the client MUST locally enforce the MAC security
+policies.
 
-The uncacheable attribute allows dirents to be annotated such that
-attributes are presented to the user based on the server's access
-control decisions.
+The uncacheable directory attribute allows dirents to be annotated
+such that attributes are presented to the user based on the server's
+access control decisions.
 
 # IANA Considerations
 
@@ -306,4 +269,8 @@ This document has no IANA actions.
 # Acknowledgments
 {:numbered="false"}
 
-Trond Myklebust and Thomas Haynes all worked on the prototype at Hammerspace.
+Trond Myklebust, Mike Snitzer,  and Thomas Haynes all worked on the
+prototype at Hammerspace.
+
+Chris Inacio, Brian Pawlowski, and Gorry Fairhurst helped guide
+this process.
