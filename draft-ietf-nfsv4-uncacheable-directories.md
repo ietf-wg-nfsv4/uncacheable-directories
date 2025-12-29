@@ -95,6 +95,9 @@ of uncacheable dirents.[^2]
 
 [^2]: What about mixed modes?
 
+The uncacheable directory entrt attribute is read-only and per
+directory object. The data type is bool.
+
 A client can easily determine whether or not a server supports
 the uncacheable directory attribute with a simple GETATTR on any
 dirent. If the server does not support the uncacheable
