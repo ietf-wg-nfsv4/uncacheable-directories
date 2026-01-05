@@ -100,7 +100,7 @@ directory object. The data type is bool.
 
 A client can easily determine whether or not a server supports
 the uncacheable directory attribute with a simple GETATTR on any
-dirent. If the server does not support the uncacheable
+dirent. If the server does not support the uncacheable directory
 attribute, it will return an error of NFS4ERR_ATTRNOTSUPP.
 
 The only way that the server can determine that the client supports
