@@ -50,16 +50,15 @@ informative:
 
 --- abstract
 
-The Network File System version 4.2 (NFSv4.2) allows a client to
-cache both metadata for file and directory objects.  While caching
-directory entries (dirents) can improve performance, it can also
-prevent the server from enforcing access control on individual
-dirents.  This document introduces a new uncacheable directory
-attribute for NFSv4.2.  Dirents marked as uncacheable MUST NOT be
-stored in client-side caches.  This ensures data consistency and
-integrity by requiring clients to always retrieve the most recent
-data directly from the server. This document extends NFSv4.2 (see
-RFC7862).
+Network File System version 4.2 (NFSv4.2) clients commonly cache
+directory entries (dirents) to improve performance. While effective
+in many cases, such caching can prevent servers from enforcing
+per-user access controls on directory entries.  This document
+introduces a new uncacheable directory attribute for NFSv4.2 that
+allows servers to advise clients that caching of directory entries
+is unsuitable. This enables servers to present directory contents
+based on user-specific access permissions while remaining compatible
+with existing NFSv4.2 clients.
 
 --- note_Note_to_Readers
 
@@ -76,32 +75,30 @@ Working Group information can be found at [](https://github.com/ietf-wg-nfsv4).
 
 # Introduction
 
-With a remote filesystem, the client typically caches both directory
-entries (dirents) in order to improve performance.  Several assumptions
-are made about the rate of change in the dirents.  With NFSv4.2,
-this could theoretically be mitigated by directory delegations for
-the dirents.
+Clients of remote filesystems commonly cache directory entries
+(dirents) to improve performance. This caching is typically shared
+across users on the client and assumes that directory contents and
+access permissions are uniform across users.
 
-There are prior efforts to bypass the dirent caching.  Access
-Based Enumeration (ABE) is used in Server Message Block (SMB)
-{{SMB2}} protocol to effectively limit the namespace visibility per
-user.
+Access Based Enumeration (ABE), as used in the SMB protocol, restricts
+directory visibility based on the access permissions of the requesting
+user. Implementing similar behavior in NFSv4.2 requires server
+involvement, as clients may not have sufficient information to
+evaluate permissions based on identity mappings, ACLs, or server-local
+policy.
 
 This document introduces the uncacheable directory attribute to
 NFSv4.2 to implement ABE. As such, it is an OPTIONAL to implement
-attribute for NFSv4.2. However, if both the client and the server
-support this attribute, then the client MUST follow the semantics
-of uncacheable dirents.[^2]
+attribute for NFSv4.2. If both the client and the server support
+this attribute, the client is advised to bypass caching of directory
+entries for directories marked as uncacheable.
 
-[^2]: What about mixed modes?
-
-The uncacheable directory entrt attribute is read-only and per
+The uncacheable directory entrt attribute is read-write and per
 directory object. The data type is bool.
 
-A client can easily determine whether or not a server supports
-the uncacheable directory attribute with a simple GETATTR on any
-dirent. If the server does not support the uncacheable directory
-attribute, it will return an error of NFS4ERR_ATTRNOTSUPP.
+A client can determine whether the uncacheable directory attribute
+is supported for a given directory by issuing a GETATTR request and
+examining the returned attribute list.
 
 The only way that the server can determine that the client supports
 the attribute is if the client sends either a GETATTR or a SETATTR
@@ -121,36 +118,15 @@ results based on the access permissions of the user making the request.
 
 dirent
 
-: A directory entry, representing either a file or a subdirectory. In
-the context of NFSv4, a dirent marked as uncacheable MUST NOT be cached
-by clients.
+: A directory entry representing a file or subdirectory and its
+associated attributes.
 
 dirent caching
 
 : A client cache that is used to avoid looking up attributes.
 
-file caching
-
-: A client cache, normally called the page cache, which caches the
-contents of a regular file. Typical usage would be to accumulate
-changes to be bunched together for writing to the server.
-
-Further, the definitions of the following terms are referenced as follows:
-
-- directory delegations ({{Section 10.9 of RFC8881}})
-- GETATTR ({{Section 18.7 of RFC8881}})
-- hidden ({{Section 5.8.2.15 of RFC8881}})
-- Mandatory Access Control (MAC) ({{RFC4949}})
-- NF4DIR ({{Section 5.8.1.2 of RFC8881}})
-- NFS4ERR_ATTRNOTSUPP ({{Section 15.1.15.1 of RFC8881}}
-- mode ({{Section 6.2.4 of RFC8881}})
-- offline ({{Section 2 of RFC9754}})
-- owner ({{Section 5.8.2.26 of RFC8881}})
-- owner_group ({{Section 5.8.2.27 of RFC8881}})
-- READDIR ({{Section 18.23 of RFC8881}})
-- SETATTR ({{Section 18.30 of RFC8881}})
-- system ({{Section 5.8.2.36 of RFC8881}})
-- type ({{Section 5.8.1.2 of RFC8881}})
+This document assumes familiarity with NFSv4.2 operations, attributes,
+and error handling as defined in {{RFC8881}} and {{RFC7862}}.
 
 ## Requirements Language
 
