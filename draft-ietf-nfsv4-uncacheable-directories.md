@@ -1,6 +1,6 @@
 ---
-title: Adding an Uncacheable Directory Attribute to NFSv4.2
-abbrev: Uncacheable Directory Attribute
+title: Adding an Uncacheable Directory-Entry Metadata Attribute to NFSv4.2
+abbrev: Uncacheable Dirents
 docname: draft-ietf-nfsv4-uncacheable-directories-latest
 category: std
 date: {DATE}
@@ -53,12 +53,13 @@ informative:
 Network File System version 4.2 (NFSv4.2) clients commonly cache
 directory entries (dirents) to improve performance. While effective
 in many cases, such caching can prevent servers from enforcing
-per-user access controls on directory entries.  This document
+per-user access controls on directory entries and up-to-date directory
+entry attributes such as size and timestamps.  This document
 introduces a new uncacheable directory attribute for NFSv4.2 that
-allows servers to advise clients that caching of directory entries
-is unsuitable. This enables servers to present directory contents
-based on user-specific access permissions while remaining compatible
-with existing NFSv4.2 clients.
+allows servers to advise clients that caching of directory entry
+metadata is unsuitable.  This enables servers to present directory
+contents based on user-specific access permissions while remaining
+compatible with existing NFSv4.2 clients.
 
 --- note_Note_to_Readers
 
@@ -80,6 +81,13 @@ Clients of remote filesystems commonly cache directory entries
 across users on the client and assumes that directory contents and
 access permissions are uniform across users.
 
+In this document, the term directory is used to describe the context
+in which directory entries are retrieved. The uncacheable directory
+attribute applies to the caching of directory entry (dirent) metadata,
+including names and associated file object metadata such as size
+and timestamps. It does not prohibit caching of the directory object
+itself, nor does it affect caching of file data.
+
 Access Based Enumeration (ABE), as used in the SMB protocol, restricts
 directory visibility based on the access permissions of the requesting
 user. Implementing similar behavior in NFSv4.2 requires server
@@ -87,14 +95,26 @@ involvement, as clients may not have sufficient information to
 evaluate permissions based on identity mappings, ACLs, or server-local
 policy.
 
+Even in the absence of Access Based Enumeration, caching of directory
+entry metadata can result in stale size and timestamp information
+when files are modified concurrently, reducing the effectiveness
+of uncacheable file data semantics when directory entry metadata
+is stale.
+
 This document introduces the uncacheable directory attribute to
 NFSv4.2 to implement ABE. As such, it is an OPTIONAL to implement
 attribute for NFSv4.2. If both the client and the server support
 this attribute, the client is advised to bypass caching of directory
 entries for directories marked as uncacheable.
 
-The uncacheable directory entrt attribute is read-write and per
+The uncacheable directory entry attribute is read-write and per
 directory object. The data type is bool.
+
+Allowing clients to set this attribute provides a portable mechanism
+for establishing directory access semantics at creation time without
+requiring out-of-band administrative configuration. The server
+remains authoritative for the attribute value, and existing NFSv4
+authorization mechanisms apply.
 
 A client can determine whether the uncacheable directory attribute
 is supported for a given directory by issuing a GETATTR request and
@@ -123,7 +143,9 @@ associated attributes.
 
 dirent caching
 
-: A client cache that is used to avoid looking up attributes.
+: A client-side cache of directory entry names and associated file
+object metadata, used to avoid repeated directory lookup and attribute
+retrieval.
 
 This document assumes familiarity with NFSv4.2 operations, attributes,
 and error handling as defined in {{RFC8881}} and {{RFC7862}}.
@@ -162,28 +184,29 @@ Enumeration (ABE). If a share or a folder has ABE enabled, then the
 user can only see the files and sub-folders for which they have
 permissions.
 
-Under the POSIX model, this can be done on the client and not
-the server. However, that only works with uid, gid, and mode bits.
-If we consider identity mappings, ACLS, and server local policies,
-then the determination of ABE MUST be done on the server.
+Under the POSIX model, this can be done on the client and not the
+server. However, that only works with uid, gid, and mode bits.  If
+we consider identity mappings, ACLs, and server local policies,
+then the determination of ABE and directory entry visibility is
+best performed on the server.
 
 Since cached dirents are shared by all users on a client, and the
 client cannot determine access permissions for individual dirents,
 all users are presented with the same set of attributes. To address
 this, this document introduces the new uncacheable directory
-attribute. This attribute instructs the client not to cache the
-dirent for a file or directory object. Consequently, each time a
-client queries for these attributes, the server's response can be
-tailored to the specific user making the request.
+attribute. This attribute advises the client not to cache directory
+entry metadata for a file or directory object. Consequently, each
+time a client queries for these attributes, the server's response
+can be tailored to the specific user making the request.
 
 ## Uncacheable Dirents {#sec_dirents}
 
 If a file object or directory has the uncacheable directory attribute
-set, then the client MUST NOT cache its dirent attributes. This
-means that even if the client has previously retrieved the attributes
-for a user, it MUST query the server again for those attributes on
-subsequent requests. Additionally, the client MUST NOT share
-attributes between different users.
+set, the client is advised not to cache directory entry metadata.
+In such cases, the client retrieves directory entry attributes from
+the server for each request, allowing the server to evaluate access
+permissions based on the requesting user.  Clients are advised not
+to share cached dirent attributes between different users.
 
 # XDR for Uncacheable Dirents Attribute
 
