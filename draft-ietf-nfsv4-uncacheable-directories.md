@@ -33,6 +33,19 @@ normative:
   RFC9754:
 
 informative:
+  MS-ABE:
+    title: Access-Based Enumeration (ABE) Concepts
+    author:
+      org: Microsoft
+    target: https://techcommunity.microsoft.com/blog/askds/access-based-enumeration-abe-concepts-part-1-of-2/400435
+    date: May 2009
+  MS-SMB2:
+    title: Server Message Block (SMB) Protocol Versions 2 and 3
+    author:
+      org: Microsoft Corporation
+    seriesinfo:
+      Microsoft: MS-SMB2
+    target: https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-smb2/
   POSIX.1:
     title: The Open Group Base Specifications Issue 7
     seriesinfo: IEEE Std 1003.1, 2013 Edition
@@ -41,12 +54,10 @@ informative:
     date:  2013
   RFC1813:
   Samba:
-    target: https://www.samba.org/
-    title: Samba.org. Samba Project Website.
-  SMB2:
-    title:  Server Message Block (SMB) Protocol Versions 2 and 3
+    title: Samba Project
     author:
-      org: Microsoft Learn
+      org: Samba Team
+    target: https://www.samba.org/
 
 --- abstract
 
@@ -88,18 +99,17 @@ including names and associated file object metadata such as size
 and timestamps. It does not prohibit caching of the directory object
 itself, nor does it affect caching of file data.
 
-Access Based Enumeration (ABE), as used in the SMB protocol, restricts
-directory visibility based on the access permissions of the requesting
-user. Implementing similar behavior in NFSv4.2 requires server
-involvement, as clients may not have sufficient information to
-evaluate permissions based on identity mappings, ACLs, or server-local
-policy.
+Access Based Enumeration (ABE) {{MS-ABE}}, as used in the Server
+Message Block (SMB {{MS-SMB2}} protocol, restricts directory
+visibility based on the access permissions of the requesting user.
+Implementing similar behavior in NFSv4.2 requires server involvement,
+as clients may not have sufficient information to evaluate permissions
+based on identity mappings, ACLs, or server-local policy.
 
-Even in the absence of Access Based Enumeration, caching of directory
-entry metadata can result in stale size and timestamp information
-when files are modified concurrently, reducing the effectiveness
-of uncacheable file data semantics when directory entry metadata
-is stale.
+Even in the absence of ABE, caching of directory entry metadata can
+result in incorrect size and timestamp information when files are
+modified concurrently, reducing the effectiveness of uncacheable
+file data semantics when directory entry metadata is stale.
 
 This document introduces the uncacheable directory attribute to
 NFSv4.2 to implement ABE. As such, it is an OPTIONAL to implement
@@ -123,6 +133,20 @@ examining the returned attribute list.
 The only way that the server can determine that the client supports
 the attribute is if the client sends either a GETATTR or a SETATTR
 with the uncacheable directory attribute.
+
+The uncacheable directory attribute governs caching behavior of
+directory-entry metadata returned by READDIR and related operations,
+not the directory object itself. The primary purpose of the uncacheable
+directory attribute is to ensure correctness of directory-entry
+metadata as determined by the server. Performance considerations
+are secondary and MUST NOT override the requirement to present
+accurate, up-to-date directory entry information.
+
+Suppressing caching of file data alone is insufficient to guarantee
+correct behavior if directory-entry metadata such as size and
+timestamps remains cached. The uncacheable directory attribute
+complements the uncacheable file data attribute by ensuring metadata
+correctness.
 
 Using the process detailed in {{RFC8178}}, the revisions in this document
 become an extension of NFSv4.2 {{RFC7862}}. They are built on top of the
@@ -172,17 +196,16 @@ client to bypass the dirent cache to have checks done when a new
 user attempts to access the dirent.
 
 Another consideration is that not all server implementations natively
-support the SMB {{SMB2}}. Instead, they layer Samba {{Samba}} on
-top of the NFSv4.2 service. The attributes of hidden, system, and
-offline have already been introduced in the NFSv4.2 protocol to
-support Samba.  The Samba implementation can utilize these attributes
-to provide SMB semantics. While private protocols can supply these
-features, it is better to drive them into open standards.
+support SMB. Instead, they layer Samba {{Samba}} on top of the
+NFSv4.2 service. The attributes of hidden, system, and offline have
+already been introduced in the NFSv4.2 protocol to support Samba.
+The Samba implementation can utilize these attributes to provide
+SMB semantics. While private protocols can supply these features,
+it is better to drive them into open standards.
 
-Another concept that can be adapted from SMB is that of Access Based
-Enumeration (ABE). If a share or a folder has ABE enabled, then the
-user can only see the files and sub-folders for which they have
-permissions.
+Another concept that can be adapted from SMB is that of ABE If a
+a directory has ABE enabled, then the user can only see the
+files and sub-directories for which they have permissions.
 
 Under the POSIX model, this can be done on the client and not the
 server. However, that only works with uid, gid, and mode bits.  If
@@ -199,6 +222,10 @@ entry metadata for a file or directory object. Consequently, each
 time a client queries for these attributes, the server's response
 can be tailored to the specific user making the request.
 
+Directory delegations do not address per-user directory-entry metadata
+visibility and therefore cannot replace the semantics defined by
+the uncacheable directory attribute.
+
 ## Uncacheable Dirents {#sec_dirents}
 
 If a file object or directory has the uncacheable directory attribute
@@ -207,6 +234,11 @@ In such cases, the client retrieves directory entry attributes from
 the server for each request, allowing the server to evaluate access
 permissions based on the requesting user.  Clients are advised not
 to share cached dirent attributes between different users.
+
+Servers MUST assume that clients which do not query or set this
+attribute may cache directory-entry metadata, and therefore MUST
+NOT rely on this attribute for correctness unless client support
+is confirmed.
 
 # XDR for Uncacheable Dirents Attribute
 
