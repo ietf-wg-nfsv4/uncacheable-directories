@@ -223,6 +223,10 @@ entry metadata for a file or directory object. Consequently, each
 time a client queries for these attributes, the server's response
 can be tailored to the specific user making the request.
 
+This attribute does not define behavior for positive or negative name
+caching or for caching of LOOKUP results outside the scope of
+directory-entry metadata returned by READDIR and related operations.
+
 Directory delegations do not address per-user directory-entry metadata
 visibility and therefore cannot replace the semantics defined by
 the uncacheable directory attribute.
