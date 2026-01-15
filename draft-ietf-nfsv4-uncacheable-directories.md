@@ -124,7 +124,7 @@ directory object. The data type is bool.
 Allowing clients to set this attribute provides a portable mechanism
 for establishing directory access semantics at creation time without
 requiring out-of-band administrative configuration. The server
-remains authoritative for the attribute value, and existing NFSv4
+remains authoritative for the attribute value, and existing NFSv4.2
 authorization mechanisms apply.
 
 A client can determine whether the uncacheable directory attribute
