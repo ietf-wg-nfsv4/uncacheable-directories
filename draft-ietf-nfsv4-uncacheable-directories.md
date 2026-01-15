@@ -99,12 +99,13 @@ including names and associated file object metadata such as size
 and timestamps. It does not prohibit caching of the directory object
 itself, nor does it affect caching of file data.
 
-Access Based Enumeration (ABE) {{MS-ABE}}, as used in the Server
-Message Block (SMB {{MS-SMB2}} protocol, restricts directory
-visibility based on the access permissions of the requesting user.
-Implementing similar behavior in NFSv4.2 requires server involvement,
-as clients may not have sufficient information to evaluate permissions
-based on identity mappings, ACLs, or server-local policy.
+Access Based Enumeration (ABE) {{MS-ABE}}, as implemented in the Server
+Message Block (SMB) {{MS-SMB2}} and deployed in implementations such
+as Samba {{Samba}}, restricts directory visibility based on the
+access permissions of the requesting user.  Implementing similar
+behavior in NFSv4.2 requires server involvement, as clients may not
+have sufficient information to evaluate permissions based on identity
+mappings, ACLs, or server-local policy.
 
 Even in the absence of ABE, caching of directory entry metadata can
 result in incorrect size and timestamp information when files are
@@ -196,12 +197,12 @@ client to bypass the dirent cache to have checks done when a new
 user attempts to access the dirent.
 
 Another consideration is that not all server implementations natively
-support SMB. Instead, they layer Samba {{Samba}} on top of the
-NFSv4.2 service. The attributes of hidden, system, and offline have
-already been introduced in the NFSv4.2 protocol to support Samba.
-The Samba implementation can utilize these attributes to provide
-SMB semantics. While private protocols can supply these features,
-it is better to drive them into open standards.
+support SMB. Instead, they layer Samba on top of the NFSv4.2 service.
+The attributes of hidden, system, and offline have already been
+introduced in the NFSv4.2 protocol to support Samba.  The Samba
+implementation can utilize these attributes to provide SMB semantics.
+While private protocols can supply these features, it is better to
+drive them into open standards.
 
 Another concept that can be adapted from SMB is that of ABE If a
 a directory has ABE enabled, then the user can only see the
