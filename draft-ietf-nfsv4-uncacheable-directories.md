@@ -185,7 +185,7 @@ for a user, it MUST query the server again for those attributes on
 subsequent requests. Additionally, the client MUST NOT share
 attributes between different users.
 
-# XDR for Offline Attribute
+# XDR for Uncacheable Dirents Attribute
 
 ~~~ xdr
 ///
