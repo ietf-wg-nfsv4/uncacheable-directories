@@ -66,7 +66,7 @@ directory entries (dirents) to improve performance. While effective
 in many cases, such caching can prevent servers from enforcing
 per-user access controls on directory entries and up-to-date directory
 entry attributes such as size and timestamps.  This document
-introduces a new uncacheable directory attribute for NFSv4.2 that
+introduces a new uncacheable dirent metadata attribute for NFSv4.2 that
 allows servers to advise clients that caching of directory entry
 metadata is unsuitable.  This enables servers to present directory
 contents based on user-specific access permissions while remaining
@@ -93,11 +93,11 @@ across users on the client and assumes that directory contents and
 access permissions are uniform across users.
 
 In this document, the term directory is used to describe the context
-in which directory entries are retrieved. The uncacheable directory
-attribute applies to the caching of directory entry (dirent) metadata,
-including names and associated file object metadata such as size
-and timestamps. It does not prohibit caching of the directory object
-itself, nor does it affect caching of file data.
+in which directory entries are retrieved.  The uncacheable dirent
+metadata attribute applies to the caching of directory entry (dirent)
+metadata, including names and associated file object metadata such
+as size and timestamps. It does not prohibit caching of the directory
+object itself, nor does it affect caching of file data.
 
 Access Based Enumeration (ABE) {{MS-ABE}}, as implemented in the Server
 Message Block (SMB) {{MS-SMB2}} and deployed in implementations such
@@ -112,7 +112,7 @@ server-driven enumeration, the SMB ABE model tightly couples directory
 enumeration with authorization and requires per-user directory views
 that are not safely cacheable across users.  This approach does not
 generalize well to NFS, where directory contents and metadata are
-traditionally shared and cached.  The uncacheable directory attribute
+traditionally shared and cached.  The uncacheable dirent metadata attribute
 allows servers to ensure correctness of directory-entry metadata
 visibility and attributes without mandating a specific enumeration
 or authorization model.
@@ -122,7 +122,7 @@ result in incorrect size and timestamp information when files are
 modified concurrently, reducing the effectiveness of uncacheable
 file data semantics when directory entry metadata is stale.
 
-This document introduces the uncacheable directory attribute to
+This document introduces the uncacheable dirent metadata attribute to
 NFSv4.2 to allow servers to advise clients that caching of
 directory-entry metadata is unsuitable.  This enables correct
 presentation of directory entry visibility and attributes, including
@@ -132,36 +132,31 @@ the server support this attribute, the client is advised to bypass
 caching of directory-entry metadata for directories marked as
 uncacheable.
 
-The uncacheable directory entry attribute is read-write and per
-directory object. The data type is bool.
+The uncacheable dirent metadata attribute is read-write and applies to
+directory objects.  The data type is bool.
 
 Allowing clients to set this attribute provides a portable mechanism
-for establishing directory access semantics at creation time without
-requiring out-of-band administrative configuration. The server
-remains authoritative for the attribute value, and existing NFSv4.2
-authorization mechanisms apply.
+to request that directory-entry metadata not be cached, without
+requiring changes to application behavior or out-of-band administrative
+configuration.
 
-A client can determine whether the uncacheable directory attribute
+A client can determine whether the uncacheable dirent metadata attribute
 is supported for a given directory by issuing a GETATTR request and
 examining the returned attribute list.
 
 The only way that the server can determine that the client supports
 the attribute is if the client sends either a GETATTR or a SETATTR
-with the uncacheable directory attribute.
+with the uncacheable dirent metadata attribute.
 
-The uncacheable directory attribute governs caching behavior of
+The uncacheable dirent metadata attribute governs caching behavior of
 directory-entry metadata returned by READDIR and related operations,
-not the directory object itself. The primary purpose of the uncacheable
-directory attribute is to ensure correctness of directory-entry
-metadata as determined by the server. Performance considerations
-are secondary and MUST NOT override the requirement to present
-accurate, up-to-date directory entry information.
+not the directory object itself.
 
 Suppressing caching of file data alone is insufficient to guarantee
 correct behavior if directory-entry metadata such as size and
-timestamps remains cached. The uncacheable directory attribute
-complements the uncacheable file data attribute by ensuring metadata
-correctness.
+timestamps remains cached. The uncacheable dirent metadata attribute
+complements the fattr4_uncacheable_file_data attribute by ensuring
+directory-entry metadata correctness.
 
 Using the process detailed in {{RFC8178}}, the revisions in this document
 become an extension of NFSv4.2 {{RFC7862}}. They are built on top of the
@@ -186,6 +181,12 @@ dirent caching
 object metadata, used to avoid repeated directory lookup and attribute
 retrieval.
 
+uncacheable dirent metadata attribute
+
+: An NFSv4.2 file attribute that advises clients not to cache
+  directory-entry metadata associated with file objects, including
+  names, size, timestamps, and visibility.
+
 This document assumes familiarity with NFSv4.2 operations, attributes,
 and error handling as defined in {{RFC8881}} and {{RFC7862}}.
 
@@ -193,7 +194,7 @@ and error handling as defined in {{RFC8881}} and {{RFC7862}}.
 
 {::boilerplate bcp14-tagged}
 
-# Caching of Dirents
+# Caching of Directory-Entry Metadata
 
 With a remote filesystem, the client typically caches directory
 entries (dirents) locally to improve performance. This cooperation
@@ -230,9 +231,9 @@ best performed on the server.
 
 Since cached dirents are shared by all users on a client, and the
 client cannot determine access permissions for individual dirents,
-all users are presented with the same set of attributes. To address
-this, this document introduces the new uncacheable directory
-attribute. This attribute advises the client not to cache directory
+all users are presented with the same set of attributes.  To address
+this, this document introduces the uncacheable dirent metadata
+attribute.  This attribute advises the client not to cache directory
 entry metadata for a file or directory object. Consequently, each
 time a client queries for these attributes, the server's response
 can be tailored to the specific user making the request.
@@ -243,11 +244,11 @@ directory-entry metadata returned by READDIR and related operations.
 
 Directory delegations do not address per-user directory-entry metadata
 visibility and therefore cannot replace the semantics defined by
-the uncacheable directory attribute.
+the uncacheable dirent metadata attribute.
 
-## Uncacheable Dirents {#sec_dirents}
+## Uncacheable Directory-Entry Metadata {#sec_dirents}
 
-If a file object or directory has the uncacheable directory attribute
+If a file object or directory has the uncacheable dirent metadata attribute
 set, the client is advised not to cache directory entry metadata.
 In such cases, the client retrieves directory entry attributes from
 the server for each request, allowing the server to evaluate access
@@ -263,16 +264,16 @@ is confirmed.
 
 ~~~ xdr
 ///
-/// typedef bool            fattr4_uncacheable_directory;
+/// typedef bool            fattr4_uncacheable_dirent_metadata;
 ///
-/// const FATTR4_UNCACHEABLE_DIRECTORY   = 88;
+/// const FATTR4_UNCACHEABLE_DIRENT_METADATA   = 88;
 ///
 ~~~
 
 # Extraction of XDR
 
 This document contains the external data representation (XDR)
-{{RFC4506}} description of the uncacheable directory attribute.  The XDR
+{{RFC4506}} description of the uncacheable dirent metadata attribute.  The XDR
 description is presented in a manner that facilitates easy extraction
 into a ready-to-compile format. To extract the machine-readable XDR
 description, use the following shell script:
@@ -309,7 +310,7 @@ MUST be made by the server.  If the client is Labeled NFS aware
 ({{RFC7204}}), then the client MUST locally enforce the MAC security
 policies.
 
-The uncacheable directory attribute allows dirents to be annotated
+The uncacheable dirent metadata attribute allows dirents to be annotated
 such that attributes are presented to the user based on the server's
 access control decisions.
 
