@@ -107,6 +107,16 @@ behavior in NFSv4.2 requires server involvement, as clients may not
 have sufficient information to evaluate permissions based on identity
 mappings, ACLs, or server-local policy.
 
+While effective in environments with centralized identity and
+server-driven enumeration, the SMB ABE model tightly couples directory
+enumeration with authorization and requires per-user directory views
+that are not safely cacheable across users.  This approach does not
+generalize well to NFS, where directory contents and metadata are
+traditionally shared and cached.  The uncacheable directory attribute
+allows servers to ensure correctness of directory-entry metadata
+visibility and attributes without mandating a specific enumeration
+or authorization model.
+
 Even in the absence of ABE, caching of directory entry metadata can
 result in incorrect size and timestamp information when files are
 modified concurrently, reducing the effectiveness of uncacheable
