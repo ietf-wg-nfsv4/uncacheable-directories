@@ -123,10 +123,14 @@ modified concurrently, reducing the effectiveness of uncacheable
 file data semantics when directory entry metadata is stale.
 
 This document introduces the uncacheable directory attribute to
-NFSv4.2 to implement ABE. As such, it is an OPTIONAL to implement
-attribute for NFSv4.2. If both the client and the server support
-this attribute, the client is advised to bypass caching of directory
-entries for directories marked as uncacheable.
+NFSv4.2 to allow servers to advise clients that caching of
+directory-entry metadata is unsuitable.  This enables correct
+presentation of directory entry visibility and attributes, including
+but not limited to Access Based Enumeration (ABE).  As such, it is an
+OPTIONAL attribute to implement for NFSv4.2.  If both the client and
+the server support this attribute, the client is advised to bypass
+caching of directory-entry metadata for directories marked as
+uncacheable.
 
 The uncacheable directory entry attribute is read-write and per
 directory object. The data type is bool.
