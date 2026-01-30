@@ -307,6 +307,12 @@ should be placed in their appropriate sections within the existing XDR.
 
 # Security Considerations
 
+Authorization to set or modify the fattr4_uncacheable_file_data
+attribute is governed by existing NFSv4.2 authorization mechanisms.
+Servers MAY restrict modification of this attribute based on local
+policy, file ownership, or access control rules.  This document does
+not define a new authorization model.
+
 For a given user A, a client MUST NOT make access decisions for
 uncacheable dirents retrieved for another user B. These decisions
 MUST be made by the server.  If the client is Labeled NFS aware
