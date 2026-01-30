@@ -270,6 +270,9 @@ attribute may cache directory-entry metadata, and therefore SHOULD
 NOT rely on this attribute for correctness unless client support
 is confirmed.
 
+Authorization to set or modify this attribute is governed by existing
+NFSv4.2 authorization mechanisms.
+
 If a client holds a directory delegation for a directory that becomes
 marked with the uncacheable dirent metadata attribute, the server is
 expected to ensure that the client observes the updated attribute
