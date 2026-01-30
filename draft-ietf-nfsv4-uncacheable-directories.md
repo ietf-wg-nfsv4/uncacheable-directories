@@ -31,6 +31,7 @@ normative:
   RFC8178:
   RFC8881:
   RFC9754:
+  I-D.ietf-nfsv4-uncacheable-files:
 
 informative:
   MS-ABE:
@@ -156,7 +157,7 @@ Suppressing caching of file data alone is insufficient to guarantee
 correct behavior if directory-entry metadata such as size and
 timestamps remains cached. The uncacheable dirent metadata attribute
 complements the fattr4_uncacheable_file_data
-({{draft-ietf-nfsv4-uncacheable-files}}) attribute by ensuring
+({{I-D.ietf-nfsv4-uncacheable-files}}) attribute by ensuring
 directory-entry metadata correctness. The two attributes address
 distinct aspects of client-side caching: one governs caching of
 file data, while the other governs caching of directory-entry
