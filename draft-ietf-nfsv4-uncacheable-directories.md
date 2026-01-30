@@ -201,7 +201,9 @@ and error handling as defined in {{RFC8881}} and {{RFC7862}}.
 # Caching of Directory-Entry Metadata
 
 The fattr4_uncacheable_file_data attribute is a read-write file
-attribute.
+attribute.  The attribute is not set on individual file objects and
+applies only to directory-entry metadata returned from the directory
+on which it is set.
 
 With a remote filesystem, the client typically caches directory
 entries (dirents) locally to improve performance. This cooperation
@@ -255,16 +257,15 @@ the uncacheable dirent metadata attribute.
 
 ## Uncacheable Directory-Entry Metadata {#sec_dirents}
 
-If a file object or directory has the uncacheable dirent metadata
-attribute set, the client is advised not to cache directory entry
-metadata.  In such cases, the client retrieves directory entry
-attributes from the server for each request, allowing the server
-to evaluate access permissions based on the requesting user.  Clients
-are advised not to share cached dirent attributes between different
-users.
+If a directory object has the uncacheable dirent metadata attribute
+set, the client is advised not to cache directory entry metadata.
+In such cases, the client retrieves directory entry attributes from
+the server for each request, allowing the server to evaluate access
+permissions based on the requesting user.  Clients are advised not
+to share cached dirent attributes between different users.
 
-Servers MUST assume that clients which do not query or set this
-attribute may cache directory-entry metadata, and therefore MUST
+Servers SHOULD assume that clients which do not query or set this
+attribute may cache directory-entry metadata, and therefore SHOULD
 NOT rely on this attribute for correctness unless client support
 is confirmed.
 
@@ -276,6 +277,10 @@ to enforce the semantics of this attribute.  Clients that observe the
 attribute set while holding a directory delegation MUST ensure that
 directory-entry metadata is not cached inconsistently with the
 attribute semantics.
+
+Because this attribute provides advisory guidance rather than mandatory
+access control, servers cannot rely on client compliance for security
+enforcement in adversarial environments.
 
 # XDR for Uncacheable Dirents Attribute
 
