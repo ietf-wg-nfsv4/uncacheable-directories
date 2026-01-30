@@ -155,8 +155,12 @@ not the directory object itself.
 Suppressing caching of file data alone is insufficient to guarantee
 correct behavior if directory-entry metadata such as size and
 timestamps remains cached. The uncacheable dirent metadata attribute
-complements the fattr4_uncacheable_file_data attribute by ensuring
-directory-entry metadata correctness.
+complements the fattr4_uncacheable_file_data
+({{draft-ietf-nfsv4-uncacheable-files}}) attribute by ensuring
+directory-entry metadata correctness. The two attributes address
+distinct aspects of client-side caching: one governs caching of
+file data, while the other governs caching of directory-entry
+metadata.
 
 Using the process detailed in {{RFC8178}}, the revisions in this document
 become an extension of NFSv4.2 {{RFC7862}}. They are built on top of the
