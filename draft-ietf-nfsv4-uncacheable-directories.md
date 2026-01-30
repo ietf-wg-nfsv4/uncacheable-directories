@@ -113,98 +113,15 @@ server-driven enumeration, the SMB ABE model tightly couples directory
 enumeration with authorization and requires per-user directory views
 that are not safely cacheable across users.  This approach does not
 generalize well to NFS, where directory contents and metadata are
-traditionally shared and cached.  The uncacheable dirent metadata attribute
-allows servers to ensure correctness of directory-entry metadata
-visibility and attributes without mandating a specific enumeration
-or authorization model.
+traditionally shared and cached.  The uncacheable dirent metadata
+attribute allows servers to ensure correctness of directory-entry
+metadata visibility and attributes without mandating a specific
+enumeration or authorization model.
 
 Even in the absence of ABE, caching of directory entry metadata can
 result in incorrect size and timestamp information when files are
 modified concurrently, reducing the effectiveness of uncacheable
 file data semantics when directory entry metadata is stale.
-
-This document introduces the uncacheable dirent metadata attribute to
-NFSv4.2 to allow servers to advise clients that caching of
-directory-entry metadata is unsuitable.  This enables correct
-presentation of directory entry visibility and attributes, including
-but not limited to Access Based Enumeration (ABE).  As such, it is an
-OPTIONAL attribute to implement for NFSv4.2.  If both the client and
-the server support this attribute, the client is advised to bypass
-caching of directory-entry metadata for directories marked as
-uncacheable.
-
-The uncacheable file data attribute applies on a per-file basis and
-has a data type of boolean.
-
-Allowing clients to set this attribute provides a portable mechanism
-to request that directory-entry metadata not be cached, without
-requiring changes to application behavior or out-of-band administrative
-configuration.
-
-A client can determine whether the uncacheable dirent metadata attribute
-is supported for a given directory by issuing a GETATTR request and
-examining the returned attribute list.
-
-The only way that the server can determine that the client supports
-the attribute is if the client sends either a GETATTR or a SETATTR
-with the uncacheable dirent metadata attribute.
-
-The uncacheable dirent metadata attribute governs caching behavior of
-directory-entry metadata returned by READDIR and related operations,
-not the directory object itself.
-
-Suppressing caching of file data alone is insufficient to guarantee
-correct behavior if directory-entry metadata such as size and
-timestamps remains cached. The uncacheable dirent metadata attribute
-complements the fattr4_uncacheable_file_data
-({{I-D.ietf-nfsv4-uncacheable-files}}) attribute by ensuring
-directory-entry metadata correctness. The two attributes address
-distinct aspects of client-side caching: one governs caching of
-file data, while the other governs caching of directory-entry
-metadata.
-
-Using the process detailed in {{RFC8178}}, the revisions in this document
-become an extension of NFSv4.2 {{RFC7862}}. They are built on top of the
-external data representation (XDR) {{RFC4506}} generated from
-{{RFC7863}}.
-
-## Definitions
-
-Access Based Enumeration (ABE)
-
-: When servicing a READDIR or GETATTR operation, the server provides
-results based on the access permissions of the user making the request.
-
-dirent
-
-: A directory entry representing a file or subdirectory and its
-associated attributes.
-
-dirent caching
-
-: A client-side cache of directory entry names and associated file
-object metadata, used to avoid repeated directory lookup and attribute
-retrieval.
-
-uncacheable dirent metadata attribute
-
-: An NFSv4.2 file attribute that advises clients not to cache
-  directory-entry metadata associated with file objects, including
-  names, size, timestamps, and visibility.
-
-This document assumes familiarity with NFSv4.2 operations, attributes,
-and error handling as defined in {{RFC8881}} and {{RFC7862}}.
-
-## Requirements Language
-
-{::boilerplate bcp14-tagged}
-
-# Caching of Directory-Entry Metadata
-
-The fattr4_uncacheable_file_data attribute is a read-write file
-attribute.  The attribute is not set on individual file objects and
-applies only to directory-entry metadata returned from the directory
-on which it is set.
 
 With a remote filesystem, the client typically caches directory
 entries (dirents) locally to improve performance. This cooperation
@@ -248,6 +165,87 @@ entry metadata for a file or directory object. Consequently, each
 time a client queries for these attributes, the server's response
 can be tailored to the specific user making the request.
 
+
+This document introduces the uncacheable dirent metadata attribute
+to NFSv4.2 to allow servers to advise clients that caching of
+directory-entry metadata is unsuitable.  Using the process detailed
+in {{RFC8178}}, the revisions in this document become an extension
+of NFSv4.2 {{RFC7862}}. They are built on top of the external data
+representation (XDR) {{RFC4506}} generated from {{RFC7863}}.
+
+## Definitions
+
+Access Based Enumeration (ABE)
+
+: When servicing a READDIR or GETATTR operation, the server provides
+results based on the access permissions of the user making the request.
+
+dirent
+
+: A directory entry representing a file or subdirectory and its
+associated attributes.
+
+dirent caching
+
+: A client-side cache of directory entry names and associated file
+object metadata, used to avoid repeated directory lookup and attribute
+retrieval.
+
+uncacheable dirent metadata attribute
+
+: An NFSv4.2 file attribute that advises clients not to cache
+  directory-entry metadata associated with file objects, including
+  names, size, timestamps, and visibility.
+
+This document assumes familiarity with NFSv4.2 operations, attributes,
+and error handling as defined in {{RFC8881}} and {{RFC7862}}.
+
+## Requirements Language
+
+{::boilerplate bcp14-tagged}
+
+# Caching of Directory-Entry Metadata
+
+The fattr4_uncacheable_file_data attribute is a read-write file
+attribute and has a data type of boolean.  The attribute is not set
+on individual file objects and applies only to directory-entry
+metadata returned from the directory on which it is set.
+
+The uncacheable dirent metadata attribute enables correct presentation
+of directory entry visibility and attributes, including but not
+limited to Access Based Enumeration (ABE).  As such, it is an
+OPTIONAL attribute to implement for NFSv4.2.  If both the client
+and the server support this attribute, the client is advised to
+bypass caching of directory-entry metadata for directories marked
+as uncacheable.
+
+Allowing clients to set this attribute provides a portable mechanism
+to request that directory-entry metadata not be cached, without
+requiring changes to application behavior or out-of-band administrative
+configuration.
+
+A client can determine whether the uncacheable dirent metadata attribute
+is supported for a given directory by issuing a GETATTR request and
+examining the returned attribute list.
+
+The only way that the server can determine that the client supports
+the attribute is if the client sends either a GETATTR or a SETATTR
+with the uncacheable dirent metadata attribute.
+
+The uncacheable dirent metadata attribute governs caching behavior of
+directory-entry metadata returned by READDIR and related operations,
+not the directory object itself.
+
+Suppressing caching of file data alone is insufficient to guarantee
+correct behavior if directory-entry metadata such as size and
+timestamps remains cached. The uncacheable dirent metadata attribute
+complements the fattr4_uncacheable_file_data
+({{I-D.ietf-nfsv4-uncacheable-files}}) attribute by ensuring
+directory-entry metadata correctness. The two attributes address
+distinct aspects of client-side caching: one governs caching of
+file data, while the other governs caching of directory-entry
+metadata.
+
 This attribute does not define behavior for positive or negative name
 caching or for caching of LOOKUP results outside the scope of
 directory-entry metadata returned by READDIR and related operations.
@@ -257,6 +255,11 @@ visibility and therefore cannot replace the semantics defined by
 the uncacheable dirent metadata attribute.
 
 ## Uncacheable Directory-Entry Metadata {#sec_dirents}
+
+The fattr4_uncacheable_file_data attribute is a read-write boolean
+attribute that applies on a per-file basis to regular files (NF4REG).
+Authorization to query or modify this attribute is governed by
+existing NFSv4.2 authorization mechanisms.
 
 If a directory object has the uncacheable dirent metadata attribute
 set, the client is advised not to cache directory entry metadata.
