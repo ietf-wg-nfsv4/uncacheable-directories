@@ -222,7 +222,7 @@ implementation can utilize these attributes to provide SMB semantics.
 While private protocols can supply these features, it is better to
 drive them into open standards.
 
-Another concept that can be adapted from SMB is that of ABE If a
+Another concept that can be adapted from SMB is that of ABE If
 a directory has ABE enabled, then the user can only see the
 files and sub-directories for which they have permissions.
 
