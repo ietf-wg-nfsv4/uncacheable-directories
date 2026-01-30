@@ -326,6 +326,13 @@ should be placed in their appropriate sections within the existing XDR.
 
 # Security Considerations
 
+This attribute is not intended to provide a security boundary or to
+replace server-enforced access control.  Its primary purpose is to
+improve correctness and interoperability in environments where
+directory-entry metadata visibility varies across users or protocols.
+Servers MUST NOT rely on this mechanism alone to prevent unauthorized
+access to directory entries.
+
 Authorization to set or modify the fattr4_uncacheable_file_data
 attribute is governed by existing NFSv4.2 authorization mechanisms.
 Servers MAY restrict modification of this attribute based on local
