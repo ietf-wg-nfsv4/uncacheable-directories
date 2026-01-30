@@ -146,10 +146,8 @@ implementation can utilize these attributes to provide SMB semantics.
 While private protocols can supply these features, it is better to
 drive them into open standards.
 
-Another concept that can be adapted from SMB is that of ABE If
-a directory has ABE enabled, then the user can only see the
-files and sub-directories for which they have permissions.
-
+Another concept that can be adapted from SMB is that of ABE, which
+is commonly used to control the visibility of directory entries.
 Under the POSIX model, this can be done on the client and not the
 server. However, that only works with uid, gid, and mode bits.  If
 we consider identity mappings, ACLs, and server local policies,
@@ -268,6 +266,14 @@ the server for each request, allowing the server to evaluate access
 permissions based on the requesting user.  Clients are advised not
 to share cached dirent attributes between different users.
 
+The uncacheable dirent metadata attribute does not modify the
+semantics of the NFSv4.2 change attribute.  Clients MUST continue to
+use the change attribute to detect directory modifications and to
+determine when directory contents may have changed, even when
+directory-entry metadata caching is suppressed.  Suppressing caching
+of directory-entry metadata does not remove the need for change-based
+validation.
+
 Servers SHOULD assume that clients which do not query or set this
 attribute may cache directory-entry metadata, and therefore SHOULD
 NOT rely on this attribute for correctness unless client support
@@ -346,11 +352,26 @@ Servers MAY restrict modification of this attribute based on local
 policy, file ownership, or access control rules.  This document does
 not define a new authorization model.
 
+The discussion of users in this section is independent of the
+specific user identity representation employed by the client or
+server.  This document does not distinguish between users identified
+via NFSv4.2 user@domain strings, RPC authentication identities, or
+local operating system user identifiers.  The uncacheable dirent
+metadata attribute does not alter NFSv4.2 authentication or
+authorization semantics and does not depend on any particular user
+identity model.
+
 For a given user A, a client MUST NOT make access decisions for
 uncacheable dirents retrieved for another user B. These decisions
 MUST be made by the server.  If the client is Labeled NFS aware
 ({{RFC7204}}), then the client MUST locally enforce the MAC security
 policies.
+
+The concerns described above primarily apply to multi-user clients
+that cache directory-entry metadata on behalf of multiple users.
+Single-user clients may not be subject to these risks, but the
+attribute semantics remain the same regardless of client usage
+model.
 
 The uncacheable dirent metadata attribute allows dirents to be annotated
 such that attributes are presented to the user based on the server's
