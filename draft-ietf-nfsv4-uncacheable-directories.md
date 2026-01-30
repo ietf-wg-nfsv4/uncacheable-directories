@@ -255,17 +255,27 @@ the uncacheable dirent metadata attribute.
 
 ## Uncacheable Directory-Entry Metadata {#sec_dirents}
 
-If a file object or directory has the uncacheable dirent metadata attribute
-set, the client is advised not to cache directory entry metadata.
-In such cases, the client retrieves directory entry attributes from
-the server for each request, allowing the server to evaluate access
-permissions based on the requesting user.  Clients are advised not
-to share cached dirent attributes between different users.
+If a file object or directory has the uncacheable dirent metadata
+attribute set, the client is advised not to cache directory entry
+metadata.  In such cases, the client retrieves directory entry
+attributes from the server for each request, allowing the server
+to evaluate access permissions based on the requesting user.  Clients
+are advised not to share cached dirent attributes between different
+users.
 
 Servers MUST assume that clients which do not query or set this
 attribute may cache directory-entry metadata, and therefore MUST
 NOT rely on this attribute for correctness unless client support
 is confirmed.
+
+If a client holds a directory delegation for a directory that becomes
+marked with the uncacheable dirent metadata attribute, the server is
+expected to ensure that the client observes the updated attribute
+value.  A server MAY recall an existing directory delegation in order
+to enforce the semantics of this attribute.  Clients that observe the
+attribute set while holding a directory delegation MUST ensure that
+directory-entry metadata is not cached inconsistently with the
+attribute semantics.
 
 # XDR for Uncacheable Dirents Attribute
 
