@@ -132,8 +132,8 @@ the server support this attribute, the client is advised to bypass
 caching of directory-entry metadata for directories marked as
 uncacheable.
 
-The uncacheable dirent metadata attribute is read-write and applies to
-directory objects.  The data type is bool.
+The uncacheable file data attribute applies on a per-file basis and
+has a data type of boolean.
 
 Allowing clients to set this attribute provides a portable mechanism
 to request that directory-entry metadata not be cached, without
@@ -195,6 +195,9 @@ and error handling as defined in {{RFC8881}} and {{RFC7862}}.
 {::boilerplate bcp14-tagged}
 
 # Caching of Directory-Entry Metadata
+
+The fattr4_uncacheable_file_data attribute is a read-write file
+attribute.
 
 With a remote filesystem, the client typically caches directory
 entries (dirents) locally to improve performance. This cooperation
