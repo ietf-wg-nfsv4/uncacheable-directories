@@ -236,13 +236,14 @@ not the directory object itself.
 
 Suppressing caching of file data alone is insufficient to guarantee
 correct behavior if directory-entry metadata such as size and
-timestamps remains cached. The uncacheable dirent metadata attribute
-complements the fattr4_uncacheable_file_data
-({{I-D.ietf-nfsv4-uncacheable-files}}) attribute by ensuring
-directory-entry metadata correctness. The two attributes address
-distinct aspects of client-side caching: one governs caching of
-file data, while the other governs caching of directory-entry
-metadata.
+timestamps remains cached.  The uncacheable dirent metadata attribute
+addresses a different aspect of client-side caching than
+fattr4_uncacheable_file_data ({{I-D.ietf-nfsv4-uncacheable-files}}).
+The file data attribute governs caching of file contents, while the
+dirent metadata attribute governs caching of directory-entry metadata.
+In some workloads, disabling only one form of caching may be
+insufficient to ensure correct behavior, but the attributes are
+independent and may be used separately.
 
 This attribute does not define behavior for positive or negative name
 caching or for caching of LOOKUP results outside the scope of
