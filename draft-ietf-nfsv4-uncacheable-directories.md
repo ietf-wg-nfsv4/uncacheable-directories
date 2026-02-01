@@ -215,9 +215,9 @@ The uncacheable dirent metadata attribute enables correct presentation
 of directory entry visibility and attributes, including but not
 limited to Access Based Enumeration (ABE).  As such, it is an
 OPTIONAL attribute to implement for NFSv4.2.  If both the client
-and the server support this attribute, the client is advised to
-bypass caching of directory-entry metadata for directories marked
-as uncacheable.
+and the server support this attribute, the client MUST to bypass
+caching of directory-entry metadata for directories marked as
+uncacheable.
 
 This document specifies the required observable behavior rather
 than mandating a particular internal implementation strategy.
