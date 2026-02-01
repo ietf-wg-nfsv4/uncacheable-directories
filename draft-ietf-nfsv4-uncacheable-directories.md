@@ -316,8 +316,8 @@ In this scenario, the client caches directory-entry metadata obtained
 from the server and reuses it for subsequent users.
 
 ~~~
-User A Process          NFS Client                NFS Server
--------------           ----------                ----------
+User A Process          NFSv4.2 Client        NFSv4.2 Server
+-------------           --------------        --------------
 readdir("/dir")
    |
    |                     READDIR
@@ -339,7 +339,7 @@ readdir("/dir")
 
 In this case, {{fig-cached-dirents}} shows directory-entry metadata
 retrieved on behalf of User A is reused to satisfy a directory read
-for User B. This behavior is typical of legacy NFS clients and
+for User B. This behavior is typical of legacy NFSv4.2 clients and
 maximizes performance, but it can result in incorrect or unauthorized
 directory views in multi-user or multi-protocol environments.
 
@@ -350,8 +350,8 @@ attribute set. The client does not retain directory-entry metadata
 across directory reads for different users.
 
 ~~~
-User A Process          NFS Client                NFS Server
--------------           ----------                ----------
+User A Process          NFSv4.2 Client        NFSv4.2 Server
+-------------           --------------        --------------
 readdir("/dir")
    |
    |                     READDIR
@@ -374,7 +374,7 @@ readdir("/dir")
 ~~~
 {: #fig-uncached-dirents title="Directory-Entry Metadata Not Cached"}
 
-In this case, {fig-ubcached-dirents}} shows each directory read
+In this case, {{fig-uncached-dirents}} shows each directory read
 results in a READDIR operation sent to the server, ensuring that
 directory-entry metadata reflects the current visibility and
 attributes appropriate to the requesting user. The client may still
