@@ -219,6 +219,13 @@ and the server support this attribute, the client is advised to
 bypass caching of directory-entry metadata for directories marked
 as uncacheable.
 
+This document specifies the required observable behavior rather
+than mandating a particular internal implementation strategy.
+Clients MAY employ more sophisticated mechanisms, such as per-user
+directory entry caching, provided that the externally visible
+behavior is equivalent to not caching directory-entry metadata
+across users.
+
 Allowing clients to set this attribute provides a portable mechanism
 to request that directory-entry metadata not be cached, without
 requiring changes to application behavior or out-of-band administrative
