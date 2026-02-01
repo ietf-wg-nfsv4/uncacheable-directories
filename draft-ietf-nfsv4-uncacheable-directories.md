@@ -121,7 +121,9 @@ enumeration or authorization model.
 Even in the absence of ABE, caching of directory entry metadata can
 result in incorrect size and timestamp information when files are
 modified concurrently, reducing the effectiveness of uncacheable
-file data semantics when directory entry metadata is stale.
+file data semantics when directory entry metadata is stale.  This
+can lead to applications observing inconsistent metadata and data
+views even when file data caching is disabled.
 
 With a remote filesystem, the client typically caches directory
 entries (dirents) locally to improve performance. This cooperation
