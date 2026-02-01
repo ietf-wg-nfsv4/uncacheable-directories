@@ -305,6 +305,91 @@ Because this attribute provides advisory guidance rather than mandatory
 access control, servers cannot rely on client compliance for security
 enforcement in adversarial environments.
 
+# Example: Directory Enumeration With and Without Dirent Metadata Caching
+
+This example illustrates the difference in client-visible behavior when
+directory-entry metadata caching is enabled versus when the uncacheable
+dirent metadata attribute is set on a directory.
+
+## Classic Directory Enumeration (Directory-Entry Metadata Cached)
+In this scenario, the client caches directory-entry metadata obtained
+from the server and reuses it for subsequent users.
+
+~~~
+User A Process          NFS Client                NFS Server
+-------------           ----------                ----------
+readdir("/dir")
+   |
+   |                     READDIR
+   |-------------------->------------------------>
+   |                     entries: {a,b,c}
+   |<--------------------<------------------------
+   |
+(entries cached in client)
+
+User B Process
+-------------           
+readdir("/dir")
+   |
+   |                     (no network traffic)
+   |                     entries returned from
+   |                     client cache: {a,b,c}
+~~~
+{: #fig-cached-dirents title="Directory-Entry Metadata Cached"}
+
+In this case, {{fig-cached-dirents}} shows directory-entry metadata
+retrieved on behalf of User A is reused to satisfy a directory read
+for User B. This behavior is typical of legacy NFS clients and
+maximizes performance, but it can result in incorrect or unauthorized
+directory views in multi-user or multi-protocol environments.
+
+## Directory Enumeration With Uncacheable Dirent Metadata
+
+In this scenario, the directory has the uncacheable dirent metadata
+attribute set. The client does not retain directory-entry metadata
+across directory reads for different users.
+
+~~~
+User A Process          NFS Client                NFS Server
+-------------           ----------                ----------
+readdir("/dir")
+   |
+   |                     READDIR
+   |-------------------->------------------------>
+   |                     entries visible to A:
+   |                     {a,b}
+   |<--------------------<------------------------
+   |
+(no directory-entry metadata retained)
+
+User B Process
+-------------           
+readdir("/dir")
+   |
+   |                     READDIR
+   |-------------------->------------------------>
+   |                     entries visible to B:
+   |                     {b,c}
+   |<--------------------<------------------------
+~~~
+{: #fig-uncached-dirents title="Directory-Entry Metadata Not Cached"}
+
+In this case, {fig-ubcached-dirents}} shows each directory read
+results in a READDIR operation sent to the server, ensuring that
+directory-entry metadata reflects the current visibility and
+attributes appropriate to the requesting user. The client may still
+cache other information, provided the externally observable behavior
+is equivalent to not caching directory-entry metadata.
+
+## Discussion
+
+This example demonstrates that the uncacheable dirent metadata attribute
+does not mandate a particular client implementation, but it does require
+that directory-entry metadata retrieved for one user MUST NOT be reused
+to satisfy directory reads for another user. The attribute ensures
+correctness and interoperability in environments where directory contents
+or visibility may differ across users, clients, or protocols.
+
 # XDR for Uncacheable Dirents Attribute
 
 ~~~ xdr
