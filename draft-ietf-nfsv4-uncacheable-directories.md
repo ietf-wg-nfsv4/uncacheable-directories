@@ -64,13 +64,19 @@ informative:
 
 Network File System version 4.2 (NFSv4.2) clients commonly cache
 directory entries (dirents) to improve performance. While effective
-in many cases, such caching can prevent servers from enforcing
-per-user access controls on directory entries and up-to-date directory
-entry attributes such as size and timestamps.  This document
-introduces a new uncacheable dirent metadata attribute for NFSv4.2 that
-allows servers to advise clients that caching of directory entry
-metadata is unsuitable.  This enables servers to present directory
-contents based on user-specific access permissions while remaining
+in many environments, such caching typically assumes that directory
+entry visibility and associated metadata are identical for all users
+of a client.  In some deployments, however, servers may need to
+present directory entries and their attributes based on the identity
+of the requesting user. When directory-entry metadata is cached and
+reused across users, the client may present directory contents or
+attributes that do not reflect the server's current access control
+decisions.  This document introduces an uncacheable dirent metadata
+attribute for NFSv4.2 that allows servers to advise clients that
+caching of directory-entry metadata returned by READDIR and related
+operations is unsuitable. When honored by the client, this attribute
+allows servers to present directory contents and attributes that
+correctly reflect per-user access permissions while remaining
 compatible with existing NFSv4.2 clients.
 
 --- note_Note_to_Readers
@@ -126,14 +132,15 @@ can lead to applications observing inconsistent metadata and data
 views even when file data caching is disabled.
 
 With a remote filesystem, the client typically caches directory
-entries (dirents) locally to improve performance. This cooperation
-succeeds because both the server and client operate under POSIX
-semantics ([POSIX.1]) and agree to interpretation of mode bits with
-respect to the uid and gid in NFSv3 {{RFC1813}}. For NFSv4.2, these
-would respectively be the mode, owner, and owner_group attributes
-defined in {{Section 5 of RFC8881}}.  Note that this cooperation
-does not apply to Access Control List (ACLs) entries as NFSv4.2
-does not implement a strict POSIX style ACL.
+entries (dirents) locally to improve performance.
+
+This cooperation works because both the client and server typically
+interpret file permissions using POSIX-like ([POSIX.1]) semantics
+based on mode bits, uid, and gid in NFSv3 {{RFC1813}}. For NFSv4.2,
+these would respectively be the mode, owner, and owner_group
+attributes defined in {{Section 5 of RFC8881}}.  Note that this
+cooperation does not apply to Access Control List (ACLs) entries
+as NFSv4.2 does not implement a strict POSIX style ACL.
 
 NFSv4.2 does implement NFSv4.1 ACLs, which are enforced on the
 server and not the client. As such, ACL enforcement requires the
@@ -216,9 +223,9 @@ The uncacheable dirent metadata attribute enables correct presentation
 of directory entry visibility and attributes, including but not
 limited to Access Based Enumeration (ABE).  As such, it is an
 OPTIONAL attribute to implement for NFSv4.2.  If both the client
-and the server support this attribute, the client MUST to bypass
-caching of directory-entry metadata for directories marked as
-uncacheable.
+and the server support this attribute, the client MUST NOT reuse
+directory-entry metadata returned by READDIR or related operations
+for different users when the attribute is set on the directory.
 
 This document specifies the required observable behavior rather
 than mandating a particular internal implementation strategy.
@@ -244,16 +251,13 @@ The uncacheable dirent metadata attribute governs caching behavior of
 directory-entry metadata returned by READDIR and related operations,
 not the directory object itself.
 
-Suppressing caching of file data alone is insufficient to guarantee
-correct behavior if directory-entry metadata such as size and
-timestamps remains cached.  The uncacheable dirent metadata attribute
-addresses a different aspect of client-side caching than
-fattr4_uncacheable_file_data ({{I-D.ietf-nfsv4-uncacheable-files}}).
-The file data attribute governs caching of file contents, while the
-dirent metadata attribute governs caching of directory-entry metadata.
-In some workloads, disabling only one form of caching may be
-insufficient to ensure correct behavior, but the attributes are
-independent and may be used separately.
+The uncacheable dirent metadata attribute addresses a different
+aspect of client-side caching than fattr4_uncacheable_file_data
+({{I-D.ietf-nfsv4-uncacheable-files}}). The file data attribute
+governs caching of file contents, while the dirent metadata attribute
+governs caching of directory-entry metadata returned by READDIR and
+related operations. The attributes are independent and may be used
+separately.
 
 This attribute does not define behavior for positive or negative name
 caching or for caching of LOOKUP results outside the scope of
@@ -274,8 +278,9 @@ If a directory object has the uncacheable dirent metadata attribute
 set, the client is advised not to cache directory entry metadata.
 In such cases, the client retrieves directory entry attributes from
 the server for each request, allowing the server to evaluate access
-permissions based on the requesting user.  Clients are advised not
-to share cached dirent attributes between different users.
+permissions based on the requesting user.  Clients MUST NOT reuse
+directory-entry metadata retrieved on behalf of one user to satisfy
+requests made on behalf of another user.
 
 The uncacheable dirent metadata attribute does not modify the
 semantics of the NFSv4.2 change attribute.  Clients MUST continue to
@@ -376,11 +381,12 @@ readdir("/dir")
 {: #fig-uncached-dirents title="Directory-Entry Metadata Not Cached"}
 
 In this case, {{fig-uncached-dirents}} shows each directory read
-results in a READDIR operation sent to the server, ensuring that
-directory-entry metadata reflects the current visibility and
-attributes appropriate to the requesting user. The client may still
-cache other information, provided the externally observable behavior
-is equivalent to not caching directory-entry metadata.
+results in a READDIR operation sent to the server for each enumeration
+request, ensuring that directory-entry metadata reflects the current
+visibility and attributes appropriate to the requesting user. The
+client may still cache other information, provided the externally
+observable behavior is equivalent to not caching directory-entry
+metadata.
 
 ## Discussion
 
@@ -390,6 +396,29 @@ that directory-entry metadata retrieved for one user MUST NOT be reused
 to satisfy directory reads for another user. The attribute ensures
 correctness and interoperability in environments where directory contents
 or visibility may differ across users, clients, or protocols.
+
+# Implementation Status
+
+Note to RFC Editor: please remove this section prior to publication.
+
+There is a prototype Hammerspace server which implements the
+uncacheable dirent metadata attribute and a prototype Linux client
+which treats the attribute as an indication not to reuse directory-
+entry metadata returned by READDIR across users.
+
+In the prototype, directories configured for ABE-like behavior are
+marked with the fattr4_uncacheable_dirent_metadata attribute.
+
+The client implementation suppresses reuse of directory-entry
+metadata across users and retrieves directory-entry metadata from
+the server as needed when servicing directory enumeration requests.
+Clients may employ more sophisticated mechanisms, such as per-user
+directory-entry caching, provided that the externally observable
+behavior matches the semantics described in this document.
+
+Experience with the prototype indicates that the attribute enables
+servers to present user-specific directory-entry visibility and
+attributes while remaining compatible with existing NFSv4.2 semantics.
 
 # XDR for Uncacheable Dirents Attribute
 
@@ -457,11 +486,11 @@ metadata attribute does not alter NFSv4.2 authentication or
 authorization semantics and does not depend on any particular user
 identity model.
 
-For a given user A, a client MUST NOT make access decisions for
-uncacheable dirents retrieved for another user B. These decisions
-MUST be made by the server.  If the client is Labeled NFS aware
-({{RFC7204}}), then the client MUST locally enforce the MAC security
-policies.
+A client MUST NOT make access or visibility decisions for one
+user based on directory-entry metadata retrieved on behalf of
+another user.  These decisions MUST be made by the server.  If the
+client is Labeled NFS aware ({{RFC7204}}), then the client MUST
+locally enforce the MAC security policies.
 
 The concerns described above primarily apply to multi-user clients
 that cache directory-entry metadata on behalf of multiple users.
