@@ -206,10 +206,11 @@ and error handling as defined in {{RFC8881}} and {{RFC7862}}.
 
 # Caching of Directory-Entry Metadata
 
-The fattr4_uncacheable_file_data attribute is a read-write file
-attribute and has a data type of boolean.  The attribute is not set
-on individual file objects and applies only to directory-entry
-metadata returned from the directory on which it is set.
+The fattr4_uncacheable_dirent_metadata attribute is a read-write boolean
+attribute that applies to directory objects  and has a data type
+of boolean.  The attribute is not set on individual file objects
+and applies only to directory-entry metadata returned from the
+directory on which it is set.
 
 The uncacheable dirent metadata attribute enables correct presentation
 of directory entry visibility and attributes, including but not
@@ -441,7 +442,7 @@ directory-entry metadata visibility varies across users or protocols.
 Servers MUST NOT rely on this mechanism alone to prevent unauthorized
 access to directory entries.
 
-Authorization to set or modify the fattr4_uncacheable_file_data
+Authorization to set or modify the fattr4_uncacheable_dirent_metadata
 attribute is governed by existing NFSv4.2 authorization mechanisms.
 Servers MAY restrict modification of this attribute based on local
 policy, file ownership, or access control rules.  This document does
