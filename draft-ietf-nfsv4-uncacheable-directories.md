@@ -333,7 +333,7 @@ readdir("/dir")
 (entries cached in client)
 
 User B Process
--------------           
+-------------
 readdir("/dir")
    |
    |                     (no network traffic)
@@ -368,7 +368,7 @@ readdir("/dir")
 (no directory-entry metadata retained)
 
 User B Process
--------------           
+-------------
 readdir("/dir")
    |
    |                     READDIR
