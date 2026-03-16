@@ -62,22 +62,19 @@ informative:
 
 --- abstract
 
-Network File System version 4.2 (NFSv4.2) clients commonly cache
-directory entries (dirents) to improve performance. While effective
-in many environments, such caching typically assumes that directory
-entry visibility and associated metadata are identical for all users
-of a client.  In some deployments, however, servers may need to
-present directory entries and their attributes based on the identity
-of the requesting user. When directory-entry metadata is cached and
-reused across users, the client may present directory contents or
-attributes that do not reflect the server's current access control
-decisions.  This document introduces an uncacheable dirent metadata
-attribute for NFSv4.2 that allows servers to advise clients that
-caching of directory-entry metadata returned by READDIR and related
-operations is unsuitable. When honored by the client, this attribute
-allows servers to present directory contents and attributes that
-correctly reflect per-user access permissions while remaining
-compatible with existing NFSv4.2 clients.
+Network File System version 4.2 (NFSv4.2) clients may cache
+directory-entry (dirent) metadata returned by READDIR to improve performance.
+Such caching typically assumes that directory-entry metadata and
+visibility are identical for all users of a client.  In some
+deployments, however, servers may present directory entries or
+associated metadata based on the identity of the requesting user.
+Reuse of cached directory-entry metadata across users can therefore
+result in clients presenting directory contents or attributes that
+do not reflect the server's current access control decisions.  This
+document introduces an uncacheable dirent metadata attribute
+for NFSv4.2 that allows servers to advise clients that directory-entry
+metadata returned by READDIR and related operations should not be
+reused across users.
 
 --- note_Note_to_Readers
 
@@ -94,25 +91,30 @@ Working Group information can be found at [](https://github.com/ietf-wg-nfsv4).
 
 # Introduction
 
-Clients of remote filesystems commonly cache directory entries
-(dirents) to improve performance. This caching is typically shared
+Clients of remote filesystems may cache directory-entries
+to improve performance. This caching is typically shared
 across users on the client and assumes that directory contents and
 access permissions are uniform across users.
 
 In this document, the term directory is used to describe the context
 in which directory entries are retrieved.  The uncacheable dirent
-metadata attribute applies to the caching of directory entry (dirent)
+metadata attribute applies to the caching of directory-entry
 metadata, including names and associated file object metadata such
 as size and timestamps. It does not prohibit caching of the directory
 object itself, nor does it affect caching of file data.
 
-Access Based Enumeration (ABE) {{MS-ABE}}, as implemented in the Server
-Message Block (SMB) {{MS-SMB2}} and deployed in implementations such
-as Samba {{Samba}}, restricts directory visibility based on the
-access permissions of the requesting user.  Implementing similar
-behavior in NFSv4.2 requires server involvement, as clients may not
-have sufficient information to evaluate permissions based on identity
-mappings, ACLs, or server-local policy.
+This document does not define server-side directory filtering or
+Access Based Enumeration (ABE) {{MS-ABE}} semantics. It only provides
+a mechanism by which a server may advise clients that directory-entry
+metadata returned by READDIR should not be reused across users.
+
+ABE, as implemented in the Server Message Block (SMB) {{MS-SMB2}}
+and deployed in implementations such as Samba {{Samba}}, restricts
+directory visibility based on the access permissions of the requesting
+user.  Implementing similar behavior in NFSv4.2 requires server
+involvement, as clients may not have sufficient information to
+evaluate permissions based on identity mappings, ACLs, or server-local
+policy.
 
 While effective in environments with centralized identity and
 server-driven enumeration, the SMB ABE model tightly couples directory
@@ -124,15 +126,12 @@ attribute allows servers to ensure correctness of directory-entry
 metadata visibility and attributes without mandating a specific
 enumeration or authorization model.
 
-Even in the absence of ABE, caching of directory entry metadata can
+Even in the absence of ABE, caching of directory-entry metadata can
 result in incorrect size and timestamp information when files are
 modified concurrently, reducing the effectiveness of uncacheable
-file data semantics when directory entry metadata is stale.  This
+file data semantics when directory-entry metadata is stale.  This
 can lead to applications observing inconsistent metadata and data
 views even when file data caching is disabled.
-
-With a remote filesystem, the client typically caches directory
-entries (dirents) locally to improve performance.
 
 This cooperation works because both the client and server typically
 interpret file permissions using POSIX-like ([POSIX.1]) semantics
@@ -144,8 +143,8 @@ as NFSv4.2 does not implement a strict POSIX style ACL.
 
 NFSv4.2 does implement NFSv4.1 ACLs, which are enforced on the
 server and not the client. As such, ACL enforcement requires the
-client to bypass the dirent cache to have checks done when a new
-user attempts to access the dirent.
+client to bypass the directory entry cache to have checks done when a new
+user attempts to access the directory entry.
 
 Another consideration is that not all server implementations natively
 support SMB. Instead, they layer Samba on top of the NFSv4.2 service.
@@ -156,14 +155,14 @@ While private protocols can supply these features, it is better to
 drive them into open standards.
 
 Another concept that can be adapted from SMB is that of ABE, which
-is commonly used to control the visibility of directory entries.
+can be used to control the visibility of directory entries.
 Under the POSIX model, this can be done on the client and not the
 server. However, that only works with uid, gid, and mode bits.  If
 we consider identity mappings, ACLs, and server local policies,
-then the determination of ABE and directory entry visibility is
+then the determination of ABE and directory-entry metadata visibility is
 best performed on the server.
 
-Since cached dirents are shared by all users on a client, and the
+Since cached directory entries are shared by all users on a client, and the
 client cannot determine access permissions for individual dirents,
 all users are presented with the same set of attributes.  To address
 this, this document introduces the uncacheable dirent metadata
@@ -189,12 +188,12 @@ results based on the access permissions of the user making the request.
 
 dirent
 
-: A directory entry representing a file or subdirectory and its
+: A directory-entry representing a file or subdirectory and its
 associated attributes.
 
 dirent caching
 
-: A client-side cache of directory entry names and associated file
+: A client-side cache of directory-entry names and associated file
 object metadata, used to avoid repeated directory lookup and attribute
 retrieval.
 
@@ -220,7 +219,7 @@ and applies only to directory-entry metadata returned from the
 directory on which it is set.
 
 The uncacheable dirent metadata attribute enables correct presentation
-of directory entry visibility and attributes, including but not
+of directory-entry visibility and attributes, including but not
 limited to Access Based Enumeration (ABE).  As such, it is an
 OPTIONAL attribute to implement for NFSv4.2.  If both the client
 and the server support this attribute, the client MUST NOT reuse
@@ -275,7 +274,7 @@ Authorization to query or modify this attribute is governed by
 existing NFSv4.2 authorization mechanisms.
 
 If a directory object has the uncacheable dirent metadata attribute
-set, the client is advised not to cache directory entry metadata.
+set, the client is advised not to cache directory-entry metadata.
 In such cases, the client retrieves directory entry attributes from
 the server for each request, allowing the server to evaluate access
 permissions based on the requesting user.  Clients MUST NOT reuse
