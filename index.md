@@ -6,3 +6,9 @@ View [saved issues](issues.html), or the latest GitHub [issues](https://github.c
 | ----- | --- | --- | --- | --- | --- |
 | [Uncacheable Dirents](./draft-ietf-nfsv4-uncacheable-directories.html "Adding an Uncacheable Directory-Entry Metadata Attribute to NFSv4.2 (HTML)") | [plain text](./draft-ietf-nfsv4-uncacheable-directories.txt "Adding an Uncacheable Directory-Entry Metadata Attribute to NFSv4.2 (Text)") | [datatracker](https://datatracker.ietf.org/doc/draft-ietf-nfsv4-uncacheable-directories "Datatracker for draft-ietf-nfsv4-uncacheable-directories") | [diff with last submission](https://author-tools.ietf.org/api/iddiff?doc_1=draft-ietf-nfsv4-uncacheable-directories&url_2=https://ietf-wg-nfsv4.github.io/uncacheable-directories/draft-ietf-nfsv4-uncacheable-directories.txt) |  |
 
+## Preview for branch [draft-ietf-nfsv4-uncacheable-directories-06](draft-ietf-nfsv4-uncacheable-directories-06)
+
+| Draft |     |     |     |
+| ----- | --- | --- | --- |
+| [Uncacheable Dirents](draft-ietf-nfsv4-uncacheable-directories-06/draft-ietf-nfsv4-uncacheable-directories.html "Adding an Uncacheable Directory-Entry Metadata Attribute to NFSv4.2 (HTML)") | [plain text](draft-ietf-nfsv4-uncacheable-directories-06/draft-ietf-nfsv4-uncacheable-directories.txt "Adding an Uncacheable Directory-Entry Metadata Attribute to NFSv4.2 (Text)") | same as main |
+
