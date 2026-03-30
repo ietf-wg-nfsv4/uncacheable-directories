@@ -4,8 +4,8 @@
 
 Network File System Version 4                                  T. Haynes
 Internet-Draft                                               Hammerspace
-Intended status: Standards Track                           27 March 2026
-Expires: 28 September 2026
+Intended status: Standards Track                           30 March 2026
+Expires: 1 October 2026
 
 
   Adding an Uncacheable Directory-Entry Metadata Attribute to NFSv4.2
@@ -53,7 +53,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 28 September 2026.
+   This Internet-Draft will expire on 1 October 2026.
 
 Copyright Notice
 
@@ -277,10 +277,10 @@ Table of Contents
 
 2.1.  Uncacheable Directory-Entry Metadata
 
-   The fattr4_uncacheable_file_data attribute is a read-write boolean
-   attribute that applies on a per-file basis to regular files (NF4REG).
-   Authorization to query or modify this attribute is governed by
-   existing NFSv4.2 authorization mechanisms.
+   The fattr4_uncacheable_dirent_metadata attribute is a read-write
+   boolean attribute that applies to directory objects.  Authorization
+   to query or modify this attribute is governed by existing NFSv4.2
+   authorization mechanisms.
 
    If a directory object has the uncacheable dirent metadata attribute
    set, the client is advised not to cache directory-entry metadata.  In
@@ -507,7 +507,17 @@ Table of Contents
 
 8.  IANA Considerations
 
-   This document has no IANA actions.
+   IANA is requested to add the following entry to the NFSv4.2
+   "Recommended Attributes" registry:
+
+   +========+====================================+===========+=========+
+   | Number | Name                               | Data Type | RFC     |
+   +========+====================================+===========+=========+
+   | 88     | fattr4_uncacheable_dirent_metadata | bool      | RFC     |
+   |        |                                    |           | TBD     |
+   +--------+------------------------------------+-----------+---------+
+
+                                  Table 1
 
 9.  References
 
@@ -528,10 +538,6 @@ Table of Contents
    [RFC4506]  Eisler, M., Ed., "XDR: External Data Representation
               Standard", STD 67, RFC 4506, DOI 10.17487/RFC4506, May
               2006, <https://www.rfc-editor.org/rfc/rfc4506>.
-
-   [RFC7204]  Haynes, T., "Requirements for Labeled NFS", RFC 7204,
-              DOI 10.17487/RFC7204, April 2014,
-              <https://www.rfc-editor.org/rfc/rfc7204>.
 
    [RFC7862]  Haynes, T., "Network File System (NFS) Version 4 Minor
               Version 2 Protocol", RFC 7862, DOI 10.17487/RFC7862,
@@ -574,14 +580,9 @@ Table of Contents
               DOI 10.17487/RFC1813, June 1995,
               <https://www.rfc-editor.org/rfc/rfc1813>.
 
-   [RFC4949]  Shirey, R., "Internet Security Glossary, Version 2",
-              FYI 36, RFC 4949, DOI 10.17487/RFC4949, August 2007,
-              <https://www.rfc-editor.org/rfc/rfc4949>.
-
-   [RFC9754]  Haynes, T. and T. Myklebust, "Extensions for Opening and
-              Delegating Files in NFSv4.2", RFC 9754,
-              DOI 10.17487/RFC9754, March 2025,
-              <https://www.rfc-editor.org/rfc/rfc9754>.
+   [RFC7204]  Haynes, T., "Requirements for Labeled NFS", RFC 7204,
+              DOI 10.17487/RFC7204, April 2014,
+              <https://www.rfc-editor.org/rfc/rfc7204>.
 
    [Samba]    Samba Team, "Samba Project", n.d.,
               <https://www.samba.org/>.
