@@ -508,12 +508,7 @@ cacheable across observations.
 
 # IANA Considerations
 
-IANA is requested to add the following entry to the NFSv4.2
-"Recommended Attributes" registry:
-
- | Number | Name                                | Data Type | RFC      |
- | ---
- | 88     | fattr4_uncacheable_dirent_metadata  | bool      | RFC TBD  |
+This document has no IANA actions.
 
 --- back
 
