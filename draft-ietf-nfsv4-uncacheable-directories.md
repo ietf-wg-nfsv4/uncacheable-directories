@@ -23,7 +23,6 @@ author:
 normative:
   RFC2119:
   RFC4506:
-  RFC7204:
   RFC7862:
   RFC7863:
   RFC8174:
@@ -32,8 +31,7 @@ normative:
   I-D.ietf-nfsv4-uncacheable-files:
 
 informative:
-  RFC4949:
-  RFC9754:
+  RFC7204:
   MS-ABE:
     title: Access-Based Enumeration (ABE) Concepts
     author:
@@ -216,7 +214,7 @@ and error handling as defined in {{RFC8881}} and {{RFC7862}}.
 # Caching of Directory-Entry Metadata
 
 The fattr4_uncacheable_dirent_metadata attribute is a read-write boolean
-attribute that applies to directory objects  and has a data type
+attribute that applies to directory objects and has a data type
 of boolean.  The attribute is not set on individual file objects
 and applies only to directory-entry metadata returned from the
 directory on which it is set.
@@ -274,8 +272,8 @@ valid across different access contexts.
 
 ## Uncacheable Directory-Entry Metadata {#sec_dirents}
 
-The fattr4_uncacheable_file_data attribute is a read-write boolean
-attribute that applies on a per-file basis to regular files (NF4REG).
+The fattr4_uncacheable_dirent_metadata attribute is a read-write boolean
+attribute that applies to directory objects.
 Authorization to query or modify this attribute is governed by
 existing NFSv4.2 authorization mechanisms.
 
@@ -510,7 +508,12 @@ cacheable across observations.
 
 # IANA Considerations
 
-This document has no IANA actions.
+IANA is requested to add the following entry to the NFSv4.2
+"Recommended Attributes" registry:
+
+ | Number | Name                                | Data Type | RFC      |
+ | ---
+ | 88     | fattr4_uncacheable_dirent_metadata  | bool      | RFC TBD  |
 
 --- back
 
