@@ -180,7 +180,7 @@ in {{RFC8178}}, the revisions in this document become an extension
 of NFSv4.2 {{RFC7862}}. They are built on top of the external data
 representation (XDR) {{RFC4506}} generated from {{RFC7863}}.
 
-## Definitions
+# Definitions
 
 Access Based Enumeration (ABE)
 
@@ -207,7 +207,7 @@ uncacheable dirent metadata attribute
 This document assumes familiarity with NFSv4.2 operations, attributes,
 and error handling as defined in {{RFC8881}} and {{RFC7862}}.
 
-## Requirements Language
+# Requirements Language
 
 {::boilerplate bcp14-tagged}
 
