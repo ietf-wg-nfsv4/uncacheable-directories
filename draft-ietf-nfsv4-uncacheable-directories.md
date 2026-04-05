@@ -240,8 +240,9 @@ requiring changes to application behavior or out-of-band administrative
 configuration.
 
 A client can determine whether the uncacheable dirent metadata attribute
-is supported for a given directory by issuing a GETATTR request and
-examining the returned attribute list.
+is supported for a given directory by examining the supported_attrs
+attribute for that directory's filesystem or by probing support using
+the procedures described in {{RFC8178}}.
 
 The only way that the server can determine that the client supports
 the attribute is if the client sends either a GETATTR or a SETATTR
