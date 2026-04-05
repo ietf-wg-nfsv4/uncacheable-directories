@@ -4,8 +4,8 @@
 
 Network File System Version 4                                  T. Haynes
 Internet-Draft                                               Hammerspace
-Intended status: Standards Track                           30 March 2026
-Expires: 1 October 2026
+Intended status: Standards Track                            5 April 2026
+Expires: 7 October 2026
 
 
   Adding an Uncacheable Directory-Entry Metadata Attribute to NFSv4.2
@@ -53,7 +53,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 1 October 2026.
+   This Internet-Draft will expire on 7 October 2026.
 
 Copyright Notice
 
@@ -72,24 +72,24 @@ Copyright Notice
 Table of Contents
 
    1.  Introduction
-     1.1.  Definitions
-     1.2.  Requirements Language
-   2.  Caching of Directory-Entry Metadata
-     2.1.  Uncacheable Directory-Entry Metadata
-   3.  Example: Directory Enumeration With and Without Dirent Metadata
+   2.  Definitions
+   3.  Requirements Language
+   4.  Caching of Directory-Entry Metadata
+     4.1.  Uncacheable Directory-Entry Metadata
+   5.  Example: Directory Enumeration With and Without Dirent Metadata
            Caching
-     3.1.  Classic Directory Enumeration (Directory-Entry Metadata
+     5.1.  Classic Directory Enumeration (Directory-Entry Metadata
            Cached)
-     3.2.  Directory Enumeration With Uncacheable Dirent Metadata
-     3.3.  Discussion
-   4.  Implementation Status
-   5.  XDR for Uncacheable Dirents Attribute
-   6.  Extraction of XDR
-   7.  Security Considerations
-   8.  IANA Considerations
-   9.  References
-     9.1.  Normative References
-     9.2.  Informative References
+     5.2.  Directory Enumeration With Uncacheable Dirent Metadata
+     5.3.  Discussion
+   6.  Implementation Status
+   7.  XDR for Uncacheable Dirents Attribute
+   8.  Extraction of XDR
+   9.  Security Considerations
+   10. IANA Considerations
+   11. References
+     11.1.  Normative References
+     11.2.  Informative References
    Acknowledgments
    Author's Address
 
@@ -187,7 +187,7 @@ Table of Contents
    NFSv4.2 [RFC7862].  They are built on top of the external data
    representation (XDR) [RFC4506] generated from [RFC7863].
 
-1.1.  Definitions
+2.  Definitions
 
    Access Based Enumeration (ABE)  When servicing a READDIR or GETATTR
       operation, the server provides results based on the access
@@ -208,7 +208,7 @@ Table of Contents
    This document assumes familiarity with NFSv4.2 operations,
    attributes, and error handling as defined in [RFC8881] and [RFC7862].
 
-1.2.  Requirements Language
+3.  Requirements Language
 
    The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
    "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
@@ -216,7 +216,7 @@ Table of Contents
    BCP 14 [RFC2119] [RFC8174] when, and only when, they appear in all
    capitals, as shown here.
 
-2.  Caching of Directory-Entry Metadata
+4.  Caching of Directory-Entry Metadata
 
    The fattr4_uncacheable_dirent_metadata attribute is a read-write
    boolean attribute that applies to directory objects and has a data
@@ -245,8 +245,9 @@ Table of Contents
    administrative configuration.
 
    A client can determine whether the uncacheable dirent metadata
-   attribute is supported for a given directory by issuing a GETATTR
-   request and examining the returned attribute list.
+   attribute is supported for a given directory by examining the
+   supported_attrs attribute for that directory's filesystem or by
+   probing support using the procedures described in [RFC8178].
 
    The only way that the server can determine that the client supports
    the attribute is if the client sends either a GETATTR or a SETATTR
@@ -275,7 +276,7 @@ Table of Contents
    Clients MUST NOT assume that directory-entry metadata is globally
    valid across different access contexts.
 
-2.1.  Uncacheable Directory-Entry Metadata
+4.1.  Uncacheable Directory-Entry Metadata
 
    The fattr4_uncacheable_dirent_metadata attribute is a read-write
    boolean attribute that applies to directory objects.  Authorization
@@ -319,14 +320,14 @@ Table of Contents
    mandatory access control, servers cannot rely on client compliance
    for security enforcement in adversarial environments.
 
-3.  Example: Directory Enumeration With and Without Dirent Metadata
+5.  Example: Directory Enumeration With and Without Dirent Metadata
     Caching
 
    This example illustrates the difference in client-visible behavior
    when directory-entry metadata caching is enabled versus when the
    uncacheable dirent metadata attribute is set on a directory.
 
-3.1.  Classic Directory Enumeration (Directory-Entry Metadata Cached)
+5.1.  Classic Directory Enumeration (Directory-Entry Metadata Cached)
 
    In this scenario, the client caches directory-entry metadata obtained
    from the server and reuses it for subsequent users.
@@ -358,7 +359,7 @@ Table of Contents
    performance, but it can result in incorrect or unauthorized directory
    views in multi-user or multi-protocol environments.
 
-3.2.  Directory Enumeration With Uncacheable Dirent Metadata
+5.2.  Directory Enumeration With Uncacheable Dirent Metadata
 
    In this scenario, the directory has the uncacheable dirent metadata
    attribute set.  The client does not retain directory-entry metadata
@@ -395,7 +396,7 @@ Table of Contents
    cache other information, provided the externally observable behavior
    is equivalent to not caching directory-entry metadata.
 
-3.3.  Discussion
+5.3.  Discussion
 
    This example demonstrates that the uncacheable dirent metadata
    attribute does not mandate a particular client implementation, but it
@@ -405,7 +406,7 @@ Table of Contents
    where directory contents or visibility may differ across users,
    clients, or protocols.
 
-4.  Implementation Status
+6.  Implementation Status
 
    Note to RFC Editor: please remove this section prior to publication.
 
@@ -429,7 +430,7 @@ Table of Contents
    attributes while remaining compatible with existing NFSv4.2
    semantics.
 
-5.  XDR for Uncacheable Dirents Attribute
+7.  XDR for Uncacheable Dirents Attribute
 
    ///
    /// typedef bool            fattr4_uncacheable_dirent_metadata;
@@ -437,7 +438,7 @@ Table of Contents
    /// const FATTR4_UNCACHEABLE_DIRENT_METADATA   = 88;
    ///
 
-6.  Extraction of XDR
+8.  Extraction of XDR
 
    This document contains the external data representation (XDR)
    [RFC4506] description of the uncacheable dirent metadata attribute.
@@ -466,7 +467,7 @@ Table of Contents
    snippets should be placed in their appropriate sections within the
    existing XDR.
 
-7.  Security Considerations
+9.  Security Considerations
 
    This attribute is not intended to provide a security boundary or to
    replace server-enforced access control.  Its primary purpose is to
@@ -505,20 +506,20 @@ Table of Contents
    that directory-entry metadata should not be assumed to be uniformly
    cacheable across observations.
 
-8.  IANA Considerations
+10.  IANA Considerations
 
    This document has no IANA actions.
 
-9.  References
+11.  References
 
-9.1.  Normative References
+11.1.  Normative References
 
    [I-D.ietf-nfsv4-uncacheable-files]
               Haynes, T., "Adding an Uncacheable File Data Attribute to
               NFSv4.2", Work in Progress, Internet-Draft, draft-ietf-
-              nfsv4-uncacheable-files-06, 23 March 2026,
+              nfsv4-uncacheable-files-07, 1 April 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-nfsv4-
-              uncacheable-files-06>.
+              uncacheable-files-07>.
 
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
               Requirement Levels", BCP 14, RFC 2119,
@@ -551,7 +552,7 @@ Table of Contents
               DOI 10.17487/RFC8881, August 2020,
               <https://www.rfc-editor.org/rfc/rfc8881>.
 
-9.2.  Informative References
+11.2.  Informative References
 
    [MS-ABE]   Microsoft, "Access-Based Enumeration (ABE) Concepts", May
               2009, <https://techcommunity.microsoft.com/blog/askds/
