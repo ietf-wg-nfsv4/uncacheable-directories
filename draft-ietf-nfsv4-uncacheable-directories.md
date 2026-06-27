@@ -47,34 +47,20 @@ informative:
     seriesinfo:
       Microsoft: MS-SMB2
     target: https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-smb2/
-  POSIX.1:
-    title: The Open Group Base Specifications Issue 7
-    seriesinfo: IEEE Std 1003.1, 2013 Edition
-    author:
-      org: IEEE
-    date:  2013
-  RFC1813:
-  Samba:
-    title: Samba Project
-    author:
-      org: Samba Team
-    target: https://www.samba.org/
-
 --- abstract
 
 Network File System version 4.2 (NFSv4.2) clients may cache
 directory-entry (dirent) metadata returned by READDIR to improve
-performance.  Such caching typically assumes that directory-entry
-metadata and visibility are identical for all users of a client.
-In some deployments, however, directory-entry metadata or visibility
-observed by a client may vary over time or across clients due to
-server policy or other factors.  Reuse of cached directory-entry
-metadata across users can therefore result in clients presenting
-directory contents or attributes that do not reflect the current
-state of the server.  This document introduces an uncacheable dirent
-metadata attribute for NFSv4.2 that allows servers to advise clients
-that directory-entry metadata returned by READDIR and related
-operations should not be reused across users.
+performance.  In some deployments, the rate at which directory
+contents change at the server exceeds the validity of typical
+NFSv4.2 client caches, so that a client serving READDIR responses
+from its local cache returns entries or attribute values that no
+longer reflect the current state of the directory.  This document
+introduces an uncacheable dirent metadata attribute for NFSv4.2
+that allows a server to indicate that a client honouring the
+attribute is required to retrieve directory-entry metadata from
+the server on each READDIR rather than serving the response from
+a local cache.
 
 --- note_Note_to_Readers
 
@@ -93,98 +79,37 @@ Working Group information can be found at [](https://github.com/ietf-wg-nfsv4).
 
 # Introduction
 
-Clients of remote filesystems may cache directory-entries
-to improve performance. This caching is typically shared
-across users on the client and assumes that directory contents and
-access permissions are uniform across users.
+Clients of remote filesystems may cache directory-entry metadata
+to improve performance.  This caching presumes that directory
+contents and the attributes of its entries remain stable for the
+duration of a client cache lifetime.  In some deployments that
+presumption does not hold; the conditions under which this is the
+case for the deployment that motivates this work are described in
+{{deployment-motivation}}.
 
-This document does not define the conditions under which directory-entry
-metadata or visibility may vary. It specifies the client behavior
-necessary to maintain correctness when such variation is observed.
-
-In this document, the term directory is used to describe the context
-in which directory entries are retrieved.  The uncacheable dirent
-metadata attribute applies to the caching of directory-entry
+In this document, the term directory is used to describe the
+context in which directory entries are retrieved.  The uncacheable
+dirent metadata attribute applies to the caching of directory-entry
 metadata, including names and associated file object metadata such
-as size and timestamps. It does not prohibit caching of the directory
-object itself, nor does it affect caching of file data.
+as size and timestamps.  It does not prohibit caching of the
+directory object itself, nor does it affect caching of file data.
 
-This document does not define server-side directory filtering or
-Access Based Enumeration (ABE) {{MS-ABE}} semantics. It only provides
-a mechanism by which a server may advise clients that directory-entry
-metadata returned by READDIR should not be reused across users.
-
-Access Based Enumeration (ABE), as implemented in the Server Message
-Block (SMB) {{MS-SMB2}} and deployed in implementations such as Samba
-{{Samba}}, is one example of an environment in which directory
-visibility may differ across requests. This document does not define
-such mechanisms, but addresses client-side caching behavior when such
-variation is observed.
-
-While effective in environments with centralized identity and
-server-driven enumeration, the SMB ABE model tightly couples directory
-enumeration with authorization and requires per-user directory views
-that are not safely cacheable across users.  This approach does not
-generalize well to NFS, where directory contents and metadata are
-traditionally shared and cached.  The uncacheable dirent metadata
-attribute allows servers to ensure correctness of directory-entry
-metadata visibility and attributes without mandating a specific
-enumeration or authorization model.
-
-Even in the absence of ABE, caching of directory-entry metadata can
-result in incorrect size and timestamp information when files are
-modified concurrently, reducing the effectiveness of uncacheable
-file data semantics when directory-entry metadata is stale.  This
-can lead to applications observing inconsistent metadata and data
-views even when file data caching is disabled.
-
-This cooperation works because both the client and server typically
-interpret file permissions using POSIX-like ([POSIX.1]) semantics
-based on mode bits, uid, and gid in NFSv3 {{RFC1813}}. For NFSv4.2,
-these would respectively be the mode, owner, and owner_group
-attributes defined in {{Section 5 of RFC8881}}.  Note that this
-cooperation does not apply to Access Control List (ACLs) entries
-as NFSv4.2 does not implement a strict POSIX style ACL.
-
-NFSv4.2 does implement NFSv4.1 ACLs, which are enforced on the
-server and not the client. As such, ACL enforcement requires the
-client to bypass the directory entry cache to have checks done when a new
-user attempts to access the directory entry.
-
-Another consideration is that not all server implementations natively
-support SMB. Instead, they layer Samba on top of the NFSv4.2 service.
-The attributes of hidden, system, and offline have already been
-introduced in the NFSv4.2 protocol to support Samba.  The Samba
-implementation can utilize these attributes to provide SMB semantics.
-While private protocols can supply these features, it is better to
-drive them into open standards.
-
-Another concept that can be adapted from SMB is that of ABE, which
-can be used to control the visibility of directory entries.
-Under the POSIX model, this can be done on the client and not the
-server. However, that only works with uid, gid, and mode bits.  If
-we consider identity mappings, ACLs, and server local policies,
-then the determination of ABE and directory-entry metadata visibility is
-best performed on the server.
-
-Since cached directory entries are shared by all users on a client, and the
-client cannot determine access permissions for individual dirents,
-all users are presented with the same set of attributes.  To address
-this, this document introduces the uncacheable dirent metadata
-attribute.  This attribute advises the client not to cache directory
-entry metadata for a file or directory object. Consequently, each
-time a client queries for these attributes, the server's response
-can be tailored to the specific user making the request.
-
+Caching of directory-entry metadata can result in incorrect size
+and timestamp information when files are modified concurrently,
+reducing the effectiveness of uncacheable file data semantics
+({{I-D.ietf-nfsv4-uncacheable-files}}) when directory-entry
+metadata is stale.  This can lead to applications observing
+inconsistent metadata and data views even when file data caching
+is disabled.
 
 This document introduces the uncacheable dirent metadata attribute
 to NFSv4.2 to allow servers to advise clients that caching of
 directory-entry metadata is unsuitable.  Using the process detailed
 in {{RFC8178}}, the revisions in this document become an extension
-of NFSv4.2 {{RFC7862}}. They are built on top of the external data
+of NFSv4.2 {{RFC7862}}.  They are built on top of the external data
 representation (XDR) {{RFC4506}} generated from {{RFC7863}}.
 
-# Deployment Motivation
+# Deployment Motivation {#deployment-motivation}
 
 Hammerspace operates a unified namespace that is exposed concurrently
 through NFSv4.2, NFSv3, and SMB.  The same directories are reachable
