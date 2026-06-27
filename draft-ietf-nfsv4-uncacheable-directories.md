@@ -207,8 +207,8 @@ each READDIR rather than serving the response from a local cache.
 
 This document specifies the required observable behavior rather
 than mandating a particular internal implementation strategy.
-Clients MAY employ more sophisticated mechanisms, such as time-
-limited caches that revalidate against the server on each
+Clients MAY employ more sophisticated mechanisms, such as
+time-limited caches that revalidate against the server on each
 READDIR, provided that the externally visible behavior is
 equivalent to retrieving directory-entry metadata from the
 server on each READDIR.
