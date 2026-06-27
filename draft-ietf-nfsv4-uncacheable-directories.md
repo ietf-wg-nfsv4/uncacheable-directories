@@ -293,15 +293,19 @@ enforcement in adversarial environments.
 
 This example illustrates the difference in client-visible behavior when
 directory-entry metadata caching is enabled versus when the uncacheable
-dirent metadata attribute is set on a directory.
+dirent metadata attribute is set on a directory.  In both scenarios,
+the directory's contents change at the server between two READDIR
+calls from the same client; the difference is whether the second
+call observes the change.
 
 ## Classic Directory Enumeration (Directory-Entry Metadata Cached)
+
 In this scenario, the client caches directory-entry metadata obtained
-from the server and reuses it for subsequent users.
+from the server and reuses it for the second readdir.
 
 ~~~
-User A Process          NFSv4.2 Client        NFSv4.2 Server
--------------           --------------        --------------
+Application             NFSv4.2 Client        NFSv4.2 Server
+-----------             --------------        --------------
 readdir("/dir")
    |
    |                     READDIR
@@ -311,8 +315,9 @@ readdir("/dir")
    |
 (entries cached in client)
 
-User B Process
--------------
+                                            (concurrent writer adds
+                                             entry d, removes c)
+
 readdir("/dir")
    |
    |                     (no network traffic)
@@ -321,59 +326,61 @@ readdir("/dir")
 ~~~
 {: #fig-cached-dirents title="Directory-Entry Metadata Cached"}
 
-In this case, {{fig-cached-dirents}} shows directory-entry metadata
-retrieved on behalf of User A is reused to satisfy a directory read
-for User B. This behavior is typical of legacy NFSv4.2 clients and
-maximizes performance, but it can result in incorrect or unauthorized
-directory views in multi-user or multi-protocol environments.
+In this case, {{fig-cached-dirents}} shows that directory-entry
+metadata retrieved by the first READDIR is reused to satisfy the
+second.  The cached response does not reflect the change that
+occurred at the server between calls.  This behavior is typical
+of legacy NFSv4.2 clients and maximizes performance, but it can
+result in applications observing directory contents that do not
+reflect the current state of the server.
 
 ## Directory Enumeration With Uncacheable Dirent Metadata
 
 In this scenario, the directory has the uncacheable dirent metadata
-attribute set. The client does not retain directory-entry metadata
-across directory reads for different users.
+attribute set.  The client retrieves directory-entry metadata from
+the server on each READDIR.
 
 ~~~
-User A Process          NFSv4.2 Client        NFSv4.2 Server
--------------           --------------        --------------
+Application             NFSv4.2 Client        NFSv4.2 Server
+-----------             --------------        --------------
 readdir("/dir")
    |
    |                     READDIR
    |-------------------->------------------------>
-   |                     entries visible to A:
-   |                     {a,b}
+   |                     entries: {a,b,c}
    |<--------------------<------------------------
    |
 (no directory-entry metadata retained)
 
-User B Process
--------------
+                                            (concurrent writer adds
+                                             entry d, removes c)
+
 readdir("/dir")
    |
    |                     READDIR
    |-------------------->------------------------>
-   |                     entries visible to B:
-   |                     {b,c}
+   |                     entries: {a,b,d}
    |<--------------------<------------------------
 ~~~
 {: #fig-uncached-dirents title="Directory-Entry Metadata Not Cached"}
 
-In this case, {{fig-uncached-dirents}} shows each directory read
-results in a READDIR operation sent to the server for each enumeration
-request, ensuring that directory-entry metadata reflects the current
-visibility and attributes appropriate to the requesting user. The
-client may still cache other information, provided the externally
-observable behavior is equivalent to not caching directory-entry
-metadata.
+In this case, {{fig-uncached-dirents}} shows that each readdir
+request results in a READDIR operation sent to the server, so
+the second call observes the change that occurred at the server
+between the two calls.  The client may still cache other
+information, provided the externally observable behavior is
+equivalent to retrieving directory-entry metadata from the
+server on each READDIR.
 
 ## Discussion
 
-This example demonstrates that the uncacheable dirent metadata attribute
-does not mandate a particular client implementation, but it does require
-the per-user non-reuse behavior specified in {{sec_dirents}}.  The
-attribute ensures correctness and interoperability in environments where
-directory contents or visibility may differ across users, clients, or
-protocols.
+This example demonstrates that the uncacheable dirent metadata
+attribute does not mandate a particular client implementation, but
+it does require the always-refetch behavior specified in
+{{sec_dirents}}.  The attribute ensures that NFSv4.2 clients
+observe directory contents reflecting the current state of the
+server in deployments where the rate of directory change exceeds
+the validity of typical client caches.
 
 # Implementation Status
 
