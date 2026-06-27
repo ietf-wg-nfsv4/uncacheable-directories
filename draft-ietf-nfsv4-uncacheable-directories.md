@@ -184,6 +184,49 @@ in {{RFC8178}}, the revisions in this document become an extension
 of NFSv4.2 {{RFC7862}}. They are built on top of the external data
 representation (XDR) {{RFC4506}} generated from {{RFC7863}}.
 
+# Deployment Motivation
+
+Hammerspace operates a unified namespace that is exposed concurrently
+through NFSv4.2, NFSv3, and SMB.  The same directories are reachable
+from all three protocols and from server-side policy components
+(placement, replication, archival) that act on the namespace without
+a client connection.  Changes to a directory's contents -- entries
+added, entries removed, entries whose attributes have been updated --
+may therefore originate at any time from any of those sources.
+
+NFSv4.2 client implementations typically cache directory-entry
+metadata returned by READDIR for a period bounded by either the
+directory's change attribute or a heuristic timeout.  In deployments
+where the rate of server-side directory churn exceeds what those
+caches can track, an NFSv4.2 client serving READDIR responses from
+its local cache will, with some regularity, return entries or
+attribute values that no longer reflect the current state of the
+directory at the server.
+
+The fattr4_uncacheable_dirent_metadata attribute is the server's
+mechanism to identify a directory for which this risk is high
+enough that client-side caching is not safe.  When the server
+sets the attribute on a directory, an honouring client retrieves
+directory-entry metadata from the server on each READDIR rather
+than from a local cache.
+
+No attribute values returned for a given dirent vary across users
+of the same directory in this deployment.  The server returns the
+same set of entries with the same attribute values to all NFSv4
+clients of a given directory regardless of the requesting user's
+identity.
+
+The Server Message Block (SMB) protocol family includes a related
+concept called Access-Based Enumeration (ABE) {{MS-ABE}}
+{{MS-SMB2}}, in which an SMB server filters the visible set of
+directory entries by the requesting user's access rights.  ABE is
+named here as background for readers familiar with the SMB
+ecosystem.  The NFSv4.2 attribute defined in this document is not
+an NFS surface for ABE: it does not require, specify, or depend
+on per-user directory filtering, and the server in the deployment
+described above does not apply such filtering to NFSv4.2 READDIR
+responses.
+
 # Definitions
 
 Access Based Enumeration (ABE)
