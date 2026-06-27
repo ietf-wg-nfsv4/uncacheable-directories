@@ -267,19 +267,21 @@ and applies only to directory-entry metadata returned from the
 directory on which it is set.
 
 The uncacheable dirent metadata attribute enables correct presentation
-of directory-entry visibility and attributes in environments where
-such information is not uniformly cacheable. As such, it is an
-OPTIONAL attribute to implement for NFSv4.2.  If both the client
-and the server support this attribute, the client MUST NOT reuse
-directory-entry metadata returned by READDIR or related operations
-for different users when the attribute is set on the directory.
+of directory-entry metadata in deployments where directory contents
+may change at the server at a rate that exceeds the validity of
+typical client caches. As such, it is an OPTIONAL attribute to
+implement for NFSv4.2.  If both the client and the server support
+this attribute, and the attribute is set on a directory, the
+client MUST retrieve directory-entry metadata from the server on
+each READDIR rather than serving the response from a local cache.
 
 This document specifies the required observable behavior rather
 than mandating a particular internal implementation strategy.
-Clients MAY employ more sophisticated mechanisms, such as per-user
-directory entry caching, provided that the externally visible
-behavior is equivalent to not caching directory-entry metadata
-across users.
+Clients MAY employ more sophisticated mechanisms, such as time-
+limited caches that revalidate against the server on each
+READDIR, provided that the externally visible behavior is
+equivalent to retrieving directory-entry metadata from the
+server on each READDIR.
 
 Allowing clients to set this attribute provides a portable mechanism
 to request that directory-entry metadata not be cached, without
@@ -311,12 +313,14 @@ This attribute does not define behavior for positive or negative name
 caching or for caching of LOOKUP results outside the scope of
 directory-entry metadata returned by READDIR and related operations.
 
-Directory delegations do not address per-user directory-entry metadata
-visibility and therefore cannot replace the semantics defined by
-the uncacheable dirent metadata attribute.
+Directory delegations grant a client exclusive caching rights subject
+to server recall.  In deployments where directory contents change at
+a rate that makes per-change recall impractical, a directory delegation
+does not provide the always-refetch semantics defined by the uncacheable
+dirent metadata attribute.  These mechanisms are independent.
 
-Clients MUST NOT assume that directory-entry metadata is globally
-valid across different access contexts.
+Clients MUST NOT assume that directory-entry metadata is valid beyond
+the READDIR that produced it.
 
 ## Uncacheable Directory-Entry Metadata {#sec_dirents}
 
@@ -326,13 +330,10 @@ Authorization to query or modify this attribute is governed by
 existing NFSv4.2 authorization mechanisms.
 
 If a directory object has the uncacheable dirent metadata attribute
-set, the client is advised not to cache directory-entry metadata.
-In such cases, the client retrieves directory-entry attributes from
-the server for each request, ensuring that the returned metadata
-reflects the current state and visibility as determined by the
-server.  Clients MUST NOT reuse directory-entry metadata retrieved
-on behalf of one user to satisfy requests made on behalf of another
-user.
+set, the client MUST retrieve directory-entry metadata from the
+server on each READDIR rather than serving the response from a
+local cache.  This ensures that the returned metadata reflects
+the current state of the directory as determined by the server.
 
 The uncacheable dirent metadata attribute does not modify the
 semantics of the NFSv4.2 change attribute.  Clients MUST continue to
