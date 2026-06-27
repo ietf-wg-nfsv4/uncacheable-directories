@@ -278,21 +278,15 @@ attribute may cache directory-entry metadata, and therefore SHOULD
 NOT rely on this attribute for correctness unless client support
 is confirmed.
 
-Authorization to set or modify this attribute is governed by existing
-NFSv4.2 authorization mechanisms.
-
-If a client holds a directory delegation for a directory that becomes
-marked with the uncacheable dirent metadata attribute, the server is
-expected to ensure that the client observes the updated attribute
-value.  A server MAY recall an existing directory delegation in order
-to enforce the semantics of this attribute.  Clients that observe the
-attribute set while holding a directory delegation MUST ensure that
-directory-entry metadata is not cached inconsistently with the
-attribute semantics.
-
-Because this attribute provides advisory guidance rather than mandatory
-access control, servers cannot rely on client compliance for security
-enforcement in adversarial environments.
+A directory delegation grants a client the right to cache
+directory-entry metadata until the server recalls the delegation.
+The always-refetch rule of this attribute is incompatible with that
+grant.  If a directory has both the uncacheable dirent metadata
+attribute set and an outstanding directory delegation, the server
+MUST recall the delegation, after which the client follows the
+always-refetch rule on each subsequent READDIR.  A server MUST NOT
+grant a new directory delegation on a directory while the
+uncacheable dirent metadata attribute is set on that directory.
 
 # Example: Directory Enumeration With and Without Dirent Metadata Caching
 
