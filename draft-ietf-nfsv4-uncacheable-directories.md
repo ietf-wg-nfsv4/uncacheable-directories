@@ -494,8 +494,9 @@ identity model.
 A client MUST NOT make access or visibility decisions for one
 user based on directory-entry metadata retrieved on behalf of
 another user.  These decisions MUST be made by the server.  If the
-client is Labeled NFS aware ({{RFC7204}}), then the client MUST
-locally enforce the MAC security policies.
+client supports Labeled NFS (see {{RFC7204}} for background), the
+client MUST locally enforce the MAC security policies defined by
+NFSv4.2 ({{RFC7862}}, Section 9).
 
 The concerns described above primarily apply to multi-user clients
 that cache directory-entry metadata on behalf of multiple users.
