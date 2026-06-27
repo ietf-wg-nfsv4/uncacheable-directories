@@ -476,13 +476,12 @@ should be placed in their appropriate sections within the existing XDR.
 
 # Security Considerations
 
-This attribute is not intended to provide a security boundary or to
-replace server-enforced access control.  Its primary purpose is to
-improve correctness and interoperability in environments where
-client-cached directory-entry metadata can become stale relative to
-the current state of the directory at the server.  Servers MUST NOT
-rely on this mechanism alone to prevent unauthorized access to
-directory entries.
+This attribute is not a security mechanism.  It addresses correctness
+of client-side caching when client-cached directory-entry metadata
+can become stale relative to the current state of the directory at
+the server.  It does not change NFSv4.2 authentication or authorization
+semantics, and it does not impose access controls on the entries it
+describes.
 
 Authorization to set or modify the fattr4_uncacheable_dirent_metadata
 attribute is governed by existing NFSv4.2 authorization mechanisms.
@@ -490,11 +489,10 @@ Servers MAY restrict modification of this attribute based on local
 policy, file ownership, or access control rules.  This document does
 not define a new authorization model.
 
-A client MUST NOT base access-control decisions on directory-entry
-metadata retrieved from the server.  These decisions MUST be made
-by the server.  If the client supports Labeled NFS (see {{RFC7204}}
-for background), the client MUST locally enforce the MAC security
-policies defined by NFSv4.2 ({{RFC7862}}, Section 9).
+If the client supports Labeled NFS (see {{RFC7204}} for background),
+the client MUST locally enforce the MAC security policies defined by
+NFSv4.2 ({{RFC7862}}, Section 9).  This obligation is independent of
+whether directory-entry metadata is cached or refetched.
 
 The uncacheable dirent metadata attribute allows servers to indicate
 that directory-entry metadata should not be assumed to remain valid
