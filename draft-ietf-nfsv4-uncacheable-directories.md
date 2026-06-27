@@ -32,6 +32,8 @@ normative:
 informative:
   I-D.ietf-nfsv4-uncacheable-files:
   RFC7204:
+  RFC8275:
+  RFC8276:
   MS-ABE:
     title: Access-Based Enumeration (ABE) Concepts
     author:
@@ -510,7 +512,13 @@ cacheable across observations.
 
 # IANA Considerations
 
-This document has no IANA actions.
+This document has no IANA actions.  Numbered FATTR4 attributes for
+NFSv4 are assigned by WG coordination through IETF publication
+rather than by an IANA registry, consistent with the assignment of
+attributes 81 and 82 in {{RFC8275}} and {{RFC8276}}.  Attribute
+number 88 was selected on the NFSv4 working group mailing list in
+conjunction with the assignment of number 87 in
+{{I-D.ietf-nfsv4-uncacheable-files}}.
 
 --- back
 
