@@ -399,10 +399,10 @@ metadata.
 
 This example demonstrates that the uncacheable dirent metadata attribute
 does not mandate a particular client implementation, but it does require
-that directory-entry metadata retrieved for one user MUST NOT be reused
-to satisfy directory reads for another user. The attribute ensures
-correctness and interoperability in environments where directory contents
-or visibility may differ across users, clients, or protocols.
+the per-user non-reuse behavior specified in {{sec_dirents}}.  The
+attribute ensures correctness and interoperability in environments where
+directory contents or visibility may differ across users, clients, or
+protocols.
 
 # Implementation Status
 
