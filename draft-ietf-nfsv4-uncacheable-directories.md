@@ -78,6 +78,8 @@ operations should not be reused across users.
 
 --- note_Note_to_Readers
 
+Note to RFC Editor: please remove this section prior to publication.
+
 Discussion of this draft takes place
 on the NFSv4 working group mailing list (nfsv4@ietf.org),
 which is archived at
