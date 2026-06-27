@@ -21,11 +21,9 @@ author:
     email: loghyr@gmail.com
 
 normative:
-  RFC2119:
   RFC4506:
   RFC7862:
   RFC7863:
-  RFC8174:
   RFC8178:
   RFC8881:
 
