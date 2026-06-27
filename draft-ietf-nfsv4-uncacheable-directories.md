@@ -293,9 +293,10 @@ uncacheable dirent metadata attribute is set on that directory.
 This example illustrates the difference in client-visible behavior when
 directory-entry metadata caching is enabled versus when the uncacheable
 dirent metadata attribute is set on a directory.  In both scenarios,
-the directory's contents change at the server between two READDIR
-calls from the same client; the difference is whether the second
-call observes the change.
+the set of entries in the directory does not change between the two
+calls; an attribute value of one entry is updated at the server
+between calls.  The difference is whether the second call observes
+the updated attribute value.
 
 ## Classic Directory Enumeration (Directory-Entry Metadata Cached)
 
@@ -309,29 +310,37 @@ readdir("/dir")
    |
    |                     READDIR
    |-------------------->------------------------>
-   |                     entries: {a,b,c}
+   |                     entries:
+   |                       a (size=100)
+   |                       b (size=200)
+   |                       c (size=300)
    |<--------------------<------------------------
    |
 (entries cached in client)
 
-                                            (concurrent writer adds
-                                             entry d, removes c)
+                                            (concurrent writer extends
+                                             a from size=100 to
+                                             size=500)
 
 readdir("/dir")
    |
    |                     (no network traffic)
    |                     entries returned from
-   |                     client cache: {a,b,c}
+   |                     client cache:
+   |                       a (size=100)
+   |                       b (size=200)
+   |                       c (size=300)
 ~~~
 {: #fig-cached-dirents title="Directory-Entry Metadata Cached"}
 
 In this case, {{fig-cached-dirents}} shows that directory-entry
 metadata retrieved by the first READDIR is reused to satisfy the
-second.  The cached response does not reflect the change that
-occurred at the server between calls.  This behavior is typical
-of legacy NFSv4.2 clients and maximizes performance, but it can
-result in applications observing directory contents that do not
-reflect the current state of the server.
+second.  The cached response reflects entry a's size as it was
+at the time of the first call; it does not reflect the update
+that occurred at the server between calls.  This behavior is
+typical of legacy NFSv4.2 clients and maximizes performance, but
+it can result in applications observing dirent attribute values
+that do not reflect the current state of the server.
 
 ## Directory Enumeration With Uncacheable Dirent Metadata
 
@@ -346,27 +355,35 @@ readdir("/dir")
    |
    |                     READDIR
    |-------------------->------------------------>
-   |                     entries: {a,b,c}
+   |                     entries:
+   |                       a (size=100)
+   |                       b (size=200)
+   |                       c (size=300)
    |<--------------------<------------------------
    |
 (no directory-entry metadata retained)
 
-                                            (concurrent writer adds
-                                             entry d, removes c)
+                                            (concurrent writer extends
+                                             a from size=100 to
+                                             size=500)
 
 readdir("/dir")
    |
    |                     READDIR
    |-------------------->------------------------>
-   |                     entries: {a,b,d}
+   |                     entries:
+   |                       a (size=500)
+   |                       b (size=200)
+   |                       c (size=300)
    |<--------------------<------------------------
 ~~~
 {: #fig-uncached-dirents title="Directory-Entry Metadata Not Cached"}
 
 In this case, {{fig-uncached-dirents}} shows that each readdir
 request results in a READDIR operation sent to the server, so
-the second call observes the change that occurred at the server
-between the two calls.  The client may still cache other
+the second call observes the updated size of entry a.  The set
+of entries returned is unchanged between calls; only the
+attribute value differs.  The client may still cache other
 information, provided the externally observable behavior is
 equivalent to retrieving directory-entry metadata from the
 server on each READDIR.
