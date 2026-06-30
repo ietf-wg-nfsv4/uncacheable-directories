@@ -30,8 +30,6 @@ normative:
 informative:
   I-D.ietf-nfsv4-uncacheable-files:
   RFC7204:
-  RFC8275:
-  RFC8276:
 --- abstract
 
 Network File System version 4.2 (NFSv4.2) clients may cache the
@@ -521,13 +519,7 @@ beyond the READDIR that produced it.
 
 # IANA Considerations
 
-This document has no IANA actions.  Numbered FATTR4 attributes for
-NFSv4 are assigned by WG coordination through IETF publication
-rather than by an IANA registry, consistent with the assignment of
-attributes 81 and 82 in {{RFC8275}} and {{RFC8276}}.  Attribute
-number 88 was selected on the NFSv4 working group mailing list in
-conjunction with the assignment of number 87 in
-{{I-D.ietf-nfsv4-uncacheable-files}}.
+This document has no IANA actions.
 
 --- back
 
