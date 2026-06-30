@@ -205,17 +205,32 @@ The only way that the server can determine that the client supports
 the attribute is if the client sends either a GETATTR or a SETATTR
 with the uncacheable dirent metadata attribute.
 
-The uncacheable dirent metadata attribute governs caching behavior of
-directory-entry metadata returned by READDIR and related operations,
-not the directory object itself.
+The uncacheable dirent metadata attribute governs the client's
+caching of READDIR responses for the directory.  It does NOT govern:
+
+* The client's per-file attribute cache for individual children of
+  the directory, populated by direct GETATTR (for example, following
+  a LOOKUP).  Such caches are governed by the attribute-cache
+  mechanisms already defined by NFSv4.2 and are subject to the same
+  staleness from concurrent writes; clients in deployments using
+  this attribute may wish to apply correspondingly short cache
+  lifetimes to per-file attributes for children of the directory,
+  but the present attribute does not require this.
+
+* The directory's own attribute cache.  The directory object's own
+  attributes (mode, owner, etc.) can be cached normally and
+  revalidated via the directory's change attribute as usual.
+
+* Operations that do not return file attributes in their response
+  (for example, LOOKUP without a following GETATTR, ACCESS).  These
+  are unaffected.
 
 The uncacheable dirent metadata attribute addresses a different
 aspect of client-side caching than fattr4_uncacheable_file_data
-({{I-D.ietf-nfsv4-uncacheable-files}}). The file data attribute
-governs caching of file contents, while the dirent metadata attribute
-governs caching of directory-entry metadata returned by READDIR and
-related operations. The attributes are independent and may be used
-separately.
+({{I-D.ietf-nfsv4-uncacheable-files}}).  The file data attribute
+governs caching of file contents, while the dirent metadata
+attribute governs caching of file attributes returned by READDIR.
+The attributes are independent and may be used separately.
 
 This attribute follows the same pattern as
 fattr4_uncacheable_file_data ({{I-D.ietf-nfsv4-uncacheable-files}})
@@ -245,9 +260,9 @@ client-cached attributes are subject to staleness; the attribute
 defined in this document only identifies directories for which
 staleness is particularly likely and particularly damaging.
 
-This attribute does not define behavior for positive or negative name
-caching or for caching of LOOKUP results outside the scope of
-directory-entry metadata returned by READDIR and related operations.
+This attribute does not define behavior for positive or negative
+name caching or for caching of LOOKUP results outside the scope of
+file attributes returned by READDIR.
 
 Directory delegations grant a client exclusive caching rights subject
 to server recall.  In deployments where directory contents change at
