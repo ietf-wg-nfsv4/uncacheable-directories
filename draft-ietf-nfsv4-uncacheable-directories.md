@@ -56,7 +56,7 @@ In some deployments the rate of file writes by other clients
 makes such caching produce incorrect size and timestamp values
 often enough to be a deployment problem.  This document introduces
 an uncacheable dirent metadata attribute for NFSv4.2 that allows
-a server to identify a directory for which an honouring client is
+a server to identify a directory for which an honoring client is
 required to retrieve directory-entry metadata from the server on
 each READDIR rather than serving the response from a local cache.
 
@@ -140,7 +140,7 @@ longer reflect the current state of those files at the server.
 The fattr4_uncacheable_dirent_metadata attribute is the server's
 mechanism to identify a directory for which this risk is high
 enough that client-side caching is not safe.  When the server sets
-the attribute on a directory, an honouring client retrieves
+the attribute on a directory, an honoring client retrieves
 directory-entry metadata from the server on each READDIR rather
 than from a local cache.
 
@@ -266,7 +266,7 @@ applied at the file-data layer.  In both cases:
 
 * For specific objects where the deployment knows the caching will
   produce incorrect results, the server requires a mechanism to
-  instruct an honouring client to suppress the caching for those
+  instruct an honoring client to suppress the caching for those
   specific objects.
 
 * The attribute does not redefine the legality of caching in the
