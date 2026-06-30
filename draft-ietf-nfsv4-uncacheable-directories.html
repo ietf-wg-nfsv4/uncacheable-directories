@@ -9,17 +9,16 @@
 <meta content="
        Network File System version 4.2 (NFSv4.2) clients may cache
 directory-entry (dirent) metadata returned by READDIR to improve
-performance.  Such caching typically assumes that directory-entry
-metadata and visibility are identical for all users of a client.
-In some deployments, however, directory-entry metadata or visibility
-observed by a client may vary over time or across clients due to
-server policy or other factors.  Reuse of cached directory-entry
-metadata across users can therefore result in clients presenting
-directory contents or attributes that do not reflect the current
-state of the server.  This document introduces an uncacheable dirent
-metadata attribute for NFSv4.2 that allows servers to advise clients
-that directory-entry metadata returned by READDIR and related
-operations should not be reused across users. 
+performance.  In some deployments, the rate at which directory
+contents change at the server exceeds the validity of typical
+NFSv4.2 client caches, so that a client serving READDIR responses
+from its local cache returns entries or attribute values that no
+longer reflect the current state of the directory.  This document
+introduces an uncacheable dirent metadata attribute for NFSv4.2
+that allows a server to indicate that a client honouring the
+attribute is required to retrieve directory-entry metadata from
+the server on each READDIR rather than serving the response from
+a local cache. 
     " name="description">
 <meta content="xml2rfc 3.34.0" name="generator">
 <meta content="Internet-Draft" name="keyword">
@@ -1060,7 +1059,7 @@ svg {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Haynes</td>
-<td class="center">Expires 29 December 2026</td>
+<td class="center">Expires 1 January 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1073,12 +1072,12 @@ svg {
 <dd class="internet-draft">draft-ietf-nfsv4-uncacheable-directories-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-06-27" class="published">27 June 2026</time>
+<time datetime="2026-06-30" class="published">30 June 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-12-29">29 December 2026</time></dd>
+<dd class="expires"><time datetime="2027-01-01">1 January 2027</time></dd>
 <dt class="label-authors">Author:</dt>
 <dd class="authors">
 <div class="author">
@@ -1093,17 +1092,16 @@ svg {
       <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
 <p id="section-abstract-1">Network File System version 4.2 (NFSv4.2) clients may cache
 directory-entry (dirent) metadata returned by READDIR to improve
-performance.  Such caching typically assumes that directory-entry
-metadata and visibility are identical for all users of a client.
-In some deployments, however, directory-entry metadata or visibility
-observed by a client may vary over time or across clients due to
-server policy or other factors.  Reuse of cached directory-entry
-metadata across users can therefore result in clients presenting
-directory contents or attributes that do not reflect the current
-state of the server.  This document introduces an uncacheable dirent
-metadata attribute for NFSv4.2 that allows servers to advise clients
-that directory-entry metadata returned by READDIR and related
-operations should not be reused across users.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
+performance.  In some deployments, the rate at which directory
+contents change at the server exceeds the validity of typical
+NFSv4.2 client caches, so that a client serving READDIR responses
+from its local cache returns entries or attribute values that no
+longer reflect the current state of the directory.  This document
+introduces an uncacheable dirent metadata attribute for NFSv4.2
+that allows a server to indicate that a client honouring the
+attribute is required to retrieve directory-entry metadata from
+the server on each READDIR rather than serving the response from
+a local cache.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
 </section>
 <section class="note" id="section-note.1">
       <h2 id="name-note-to-readers">
@@ -1137,7 +1135,7 @@ code and issues list for this draft can be found at
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 29 December 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 1 January 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1170,64 +1168,67 @@ code and issues list for this draft can be found at
             <p id="section-toc.1-1.1.1" class="keepWithNext"><a href="#section-1" class="auto internal xref">1</a>.  <a href="#name-introduction" class="internal xref">Introduction</a></p>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2">
-            <p id="section-toc.1-1.2.1" class="keepWithNext"><a href="#section-2" class="auto internal xref">2</a>.  <a href="#name-definitions" class="internal xref">Definitions</a></p>
+            <p id="section-toc.1-1.2.1" class="keepWithNext"><a href="#section-2" class="auto internal xref">2</a>.  <a href="#name-deployment-motivation" class="internal xref">Deployment Motivation</a></p>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3">
-            <p id="section-toc.1-1.3.1" class="keepWithNext"><a href="#section-3" class="auto internal xref">3</a>.  <a href="#name-requirements-language" class="internal xref">Requirements Language</a></p>
+            <p id="section-toc.1-1.3.1" class="keepWithNext"><a href="#section-3" class="auto internal xref">3</a>.  <a href="#name-definitions" class="internal xref">Definitions</a></p>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4">
-            <p id="section-toc.1-1.4.1"><a href="#section-4" class="auto internal xref">4</a>.  <a href="#name-caching-of-directory-entry-" class="internal xref">Caching of Directory-Entry Metadata</a></p>
-<ul class="compact toc ulBare ulEmpty">
-<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.1">
-                <p id="section-toc.1-1.4.2.1.1"><a href="#section-4.1" class="auto internal xref">4.1</a>.  <a href="#name-uncacheable-directory-entry" class="internal xref">Uncacheable Directory-Entry Metadata</a></p>
-</li>
-            </ul>
+            <p id="section-toc.1-1.4.1"><a href="#section-4" class="auto internal xref">4</a>.  <a href="#name-requirements-language" class="internal xref">Requirements Language</a></p>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5">
-            <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-example-directory-enumerati" class="internal xref">Example: Directory Enumeration With and Without Dirent Metadata Caching</a></p>
+            <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-caching-of-directory-entry-" class="internal xref">Caching of Directory-Entry Metadata</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.1">
-                <p id="section-toc.1-1.5.2.1.1"><a href="#section-5.1" class="auto internal xref">5.1</a>.  <a href="#name-classic-directory-enumerati" class="internal xref">Classic Directory Enumeration (Directory-Entry Metadata Cached)</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.2">
-                <p id="section-toc.1-1.5.2.2.1"><a href="#section-5.2" class="auto internal xref">5.2</a>.  <a href="#name-directory-enumeration-with-" class="internal xref">Directory Enumeration With Uncacheable Dirent Metadata</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.3">
-                <p id="section-toc.1-1.5.2.3.1"><a href="#section-5.3" class="auto internal xref">5.3</a>.  <a href="#name-discussion" class="internal xref">Discussion</a></p>
+                <p id="section-toc.1-1.5.2.1.1"><a href="#section-5.1" class="auto internal xref">5.1</a>.  <a href="#name-uncacheable-directory-entry" class="internal xref">Uncacheable Directory-Entry Metadata</a></p>
 </li>
             </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6">
-            <p id="section-toc.1-1.6.1"><a href="#section-6" class="auto internal xref">6</a>.  <a href="#name-implementation-status" class="internal xref">Implementation Status</a></p>
-</li>
-          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7">
-            <p id="section-toc.1-1.7.1"><a href="#section-7" class="auto internal xref">7</a>.  <a href="#name-xdr-for-uncacheable-dirents" class="internal xref">XDR for Uncacheable Dirents Attribute</a></p>
-</li>
-          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8">
-            <p id="section-toc.1-1.8.1"><a href="#section-8" class="auto internal xref">8</a>.  <a href="#name-extraction-of-xdr" class="internal xref">Extraction of XDR</a></p>
-</li>
-          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9">
-            <p id="section-toc.1-1.9.1"><a href="#section-9" class="auto internal xref">9</a>.  <a href="#name-security-considerations" class="internal xref">Security Considerations</a></p>
-</li>
-          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10">
-            <p id="section-toc.1-1.10.1"><a href="#section-10" class="auto internal xref">10</a>. <a href="#name-iana-considerations" class="internal xref">IANA Considerations</a></p>
-</li>
-          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11">
-            <p id="section-toc.1-1.11.1"><a href="#section-11" class="auto internal xref">11</a>. <a href="#name-references" class="internal xref">References</a></p>
+            <p id="section-toc.1-1.6.1"><a href="#section-6" class="auto internal xref">6</a>.  <a href="#name-example-directory-enumerati" class="internal xref">Example: Directory Enumeration With and Without Dirent Metadata Caching</a></p>
 <ul class="compact toc ulBare ulEmpty">
-<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11.2.1">
-                <p id="section-toc.1-1.11.2.1.1"><a href="#section-11.1" class="auto internal xref">11.1</a>.  <a href="#name-normative-references" class="internal xref">Normative References</a></p>
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.1">
+                <p id="section-toc.1-1.6.2.1.1"><a href="#section-6.1" class="auto internal xref">6.1</a>.  <a href="#name-classic-directory-enumerati" class="internal xref">Classic Directory Enumeration (Directory-Entry Metadata Cached)</a></p>
 </li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11.2.2">
-                <p id="section-toc.1-1.11.2.2.1"><a href="#section-11.2" class="auto internal xref">11.2</a>.  <a href="#name-informative-references" class="internal xref">Informative References</a></p>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.2">
+                <p id="section-toc.1-1.6.2.2.1"><a href="#section-6.2" class="auto internal xref">6.2</a>.  <a href="#name-directory-enumeration-with-" class="internal xref">Directory Enumeration With Uncacheable Dirent Metadata</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.3">
+                <p id="section-toc.1-1.6.2.3.1"><a href="#section-6.3" class="auto internal xref">6.3</a>.  <a href="#name-discussion" class="internal xref">Discussion</a></p>
 </li>
             </ul>
 </li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7">
+            <p id="section-toc.1-1.7.1"><a href="#section-7" class="auto internal xref">7</a>.  <a href="#name-implementation-status" class="internal xref">Implementation Status</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8">
+            <p id="section-toc.1-1.8.1"><a href="#section-8" class="auto internal xref">8</a>.  <a href="#name-xdr-for-uncacheable-dirents" class="internal xref">XDR for Uncacheable Dirents Attribute</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9">
+            <p id="section-toc.1-1.9.1"><a href="#section-9" class="auto internal xref">9</a>.  <a href="#name-extraction-of-xdr" class="internal xref">Extraction of XDR</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10">
+            <p id="section-toc.1-1.10.1"><a href="#section-10" class="auto internal xref">10</a>. <a href="#name-security-considerations" class="internal xref">Security Considerations</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11">
+            <p id="section-toc.1-1.11.1"><a href="#section-11" class="auto internal xref">11</a>. <a href="#name-iana-considerations" class="internal xref">IANA Considerations</a></p>
+</li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12">
-            <p id="section-toc.1-1.12.1"><a href="#appendix-A" class="auto internal xref"></a><a href="#name-acknowledgments" class="internal xref">Acknowledgments</a></p>
+            <p id="section-toc.1-1.12.1"><a href="#section-12" class="auto internal xref">12</a>. <a href="#name-references" class="internal xref">References</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.1">
+                <p id="section-toc.1-1.12.2.1.1"><a href="#section-12.1" class="auto internal xref">12.1</a>.  <a href="#name-normative-references" class="internal xref">Normative References</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.2">
+                <p id="section-toc.1-1.12.2.2.1"><a href="#section-12.2" class="auto internal xref">12.2</a>.  <a href="#name-informative-references" class="internal xref">Informative References</a></p>
+</li>
+            </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13">
-            <p id="section-toc.1-1.13.1"><a href="#appendix-B" class="auto internal xref"></a><a href="#name-authors-address" class="internal xref">Author's Address</a></p>
+            <p id="section-toc.1-1.13.1"><a href="#appendix-A" class="auto internal xref"></a><a href="#name-acknowledgments" class="internal xref">Acknowledgments</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.14">
+            <p id="section-toc.1-1.14.1"><a href="#appendix-B" class="auto internal xref"></a><a href="#name-authors-address" class="internal xref">Author's Address</a></p>
 </li>
         </ul>
 </nav>
@@ -1238,311 +1239,326 @@ code and issues list for this draft can be found at
       <h2 id="name-introduction">
 <a href="#section-1" class="section-number selfRef">1. </a><a href="#name-introduction" class="section-name selfRef">Introduction</a>
       </h2>
-<p id="section-1-1">Clients of remote filesystems may cache directory-entries
-to improve performance. This caching is typically shared
-across users on the client and assumes that directory contents and
-access permissions are uniform across users.<a href="#section-1-1" class="pilcrow">¶</a></p>
-<p id="section-1-2">This document does not define the conditions under which directory-entry
-metadata or visibility may vary. It specifies the client behavior
-necessary to maintain correctness when such variation is observed.<a href="#section-1-2" class="pilcrow">¶</a></p>
-<p id="section-1-3">In this document, the term directory is used to describe the context
-in which directory entries are retrieved.  The uncacheable dirent
-metadata attribute applies to the caching of directory-entry
+<p id="section-1-1">Clients of remote filesystems may cache directory-entry metadata
+to improve performance.  This caching presumes that directory
+contents and the attributes of its entries remain stable for the
+duration of a client cache lifetime.  In some deployments that
+presumption does not hold; the conditions under which this is the
+case for the deployment that motivates this work are described in
+<a href="#deployment-motivation" class="auto internal xref">Section 2</a>.<a href="#section-1-1" class="pilcrow">¶</a></p>
+<p id="section-1-2">In this document, the term directory is used to describe the
+context in which directory entries are retrieved.  The uncacheable
+dirent metadata attribute applies to the caching of directory-entry
 metadata, including names and associated file object metadata such
-as size and timestamps. It does not prohibit caching of the directory
-object itself, nor does it affect caching of file data.<a href="#section-1-3" class="pilcrow">¶</a></p>
-<p id="section-1-4">This document does not define server-side directory filtering or
-Access Based Enumeration (ABE) <span>[<a href="#MS-ABE" class="cite xref">MS-ABE</a>]</span> semantics. It only provides
-a mechanism by which a server may advise clients that directory-entry
-metadata returned by READDIR should not be reused across users.<a href="#section-1-4" class="pilcrow">¶</a></p>
-<p id="section-1-5">Access Based Enumeration (ABE), as implemented in the Server Message
-Block (SMB) <span>[<a href="#MS-SMB2" class="cite xref">MS-SMB2</a>]</span> and deployed in implementations such as Samba
-<span>[<a href="#Samba" class="cite xref">Samba</a>]</span>, is one example of an environment in which directory
-visibility may differ across requests. This document does not define
-such mechanisms, but addresses client-side caching behavior when such
-variation is observed.<a href="#section-1-5" class="pilcrow">¶</a></p>
-<p id="section-1-6">While effective in environments with centralized identity and
-server-driven enumeration, the SMB ABE model tightly couples directory
-enumeration with authorization and requires per-user directory views
-that are not safely cacheable across users.  This approach does not
-generalize well to NFS, where directory contents and metadata are
-traditionally shared and cached.  The uncacheable dirent metadata
-attribute allows servers to ensure correctness of directory-entry
-metadata visibility and attributes without mandating a specific
-enumeration or authorization model.<a href="#section-1-6" class="pilcrow">¶</a></p>
-<p id="section-1-7">Even in the absence of ABE, caching of directory-entry metadata can
-result in incorrect size and timestamp information when files are
-modified concurrently, reducing the effectiveness of uncacheable
-file data semantics when directory-entry metadata is stale.  This
-can lead to applications observing inconsistent metadata and data
-views even when file data caching is disabled.<a href="#section-1-7" class="pilcrow">¶</a></p>
-<p id="section-1-8">This cooperation works because both the client and server typically
-interpret file permissions using POSIX-like (<span>[<a href="#POSIX.1" class="cite xref">POSIX.1</a>]</span>) semantics
-based on mode bits, uid, and gid in NFSv3 <span>[<a href="#RFC1813" class="cite xref">RFC1813</a>]</span>. For NFSv4.2,
-these would respectively be the mode, owner, and owner_group
-attributes defined in <span><a href="https://rfc-editor.org/rfc/rfc8881#section-5" class="relref">Section 5</a> of [<a href="#RFC8881" class="cite xref">RFC8881</a>]</span>.  Note that this
-cooperation does not apply to Access Control List (ACLs) entries
-as NFSv4.2 does not implement a strict POSIX style ACL.<a href="#section-1-8" class="pilcrow">¶</a></p>
-<p id="section-1-9">NFSv4.2 does implement NFSv4.1 ACLs, which are enforced on the
-server and not the client. As such, ACL enforcement requires the
-client to bypass the directory entry cache to have checks done when a new
-user attempts to access the directory entry.<a href="#section-1-9" class="pilcrow">¶</a></p>
-<p id="section-1-10">Another consideration is that not all server implementations natively
-support SMB. Instead, they layer Samba on top of the NFSv4.2 service.
-The attributes of hidden, system, and offline have already been
-introduced in the NFSv4.2 protocol to support Samba.  The Samba
-implementation can utilize these attributes to provide SMB semantics.
-While private protocols can supply these features, it is better to
-drive them into open standards.<a href="#section-1-10" class="pilcrow">¶</a></p>
-<p id="section-1-11">Another concept that can be adapted from SMB is that of ABE, which
-can be used to control the visibility of directory entries.
-Under the POSIX model, this can be done on the client and not the
-server. However, that only works with uid, gid, and mode bits.  If
-we consider identity mappings, ACLs, and server local policies,
-then the determination of ABE and directory-entry metadata visibility is
-best performed on the server.<a href="#section-1-11" class="pilcrow">¶</a></p>
-<p id="section-1-12">Since cached directory entries are shared by all users on a client, and the
-client cannot determine access permissions for individual dirents,
-all users are presented with the same set of attributes.  To address
-this, this document introduces the uncacheable dirent metadata
-attribute.  This attribute advises the client not to cache directory
-entry metadata for a file or directory object. Consequently, each
-time a client queries for these attributes, the server's response
-can be tailored to the specific user making the request.<a href="#section-1-12" class="pilcrow">¶</a></p>
-<p id="section-1-13">This document introduces the uncacheable dirent metadata attribute
+as size and timestamps.  It does not prohibit caching of the
+directory object itself, nor does it affect caching of file data.<a href="#section-1-2" class="pilcrow">¶</a></p>
+<p id="section-1-3">Caching of directory-entry metadata can result in incorrect size
+and timestamp information when files are modified concurrently,
+reducing the effectiveness of uncacheable file data semantics
+(<span>[<a href="#I-D.ietf-nfsv4-uncacheable-files" class="cite xref">I-D.ietf-nfsv4-uncacheable-files</a>]</span>) when directory-entry
+metadata is stale.  This can lead to applications observing
+inconsistent metadata and data views even when file data caching
+is disabled.<a href="#section-1-3" class="pilcrow">¶</a></p>
+<p id="section-1-4">This document introduces the uncacheable dirent metadata attribute
 to NFSv4.2 to allow servers to advise clients that caching of
 directory-entry metadata is unsuitable.  Using the process detailed
 in <span>[<a href="#RFC8178" class="cite xref">RFC8178</a>]</span>, the revisions in this document become an extension
-of NFSv4.2 <span>[<a href="#RFC7862" class="cite xref">RFC7862</a>]</span>. They are built on top of the external data
-representation (XDR) <span>[<a href="#RFC4506" class="cite xref">RFC4506</a>]</span> generated from <span>[<a href="#RFC7863" class="cite xref">RFC7863</a>]</span>.<a href="#section-1-13" class="pilcrow">¶</a></p>
+of NFSv4.2 <span>[<a href="#RFC7862" class="cite xref">RFC7862</a>]</span>.  They are built on top of the external data
+representation (XDR) <span>[<a href="#RFC4506" class="cite xref">RFC4506</a>]</span> generated from <span>[<a href="#RFC7863" class="cite xref">RFC7863</a>]</span>.<a href="#section-1-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="deployment-motivation">
+<section id="section-2">
+      <h2 id="name-deployment-motivation">
+<a href="#section-2" class="section-number selfRef">2. </a><a href="#name-deployment-motivation" class="section-name selfRef">Deployment Motivation</a>
+      </h2>
+<p id="section-2-1">A class of deployment exposes a single file namespace concurrently
+through multiple file-access protocols, typically including
+NFSv4.2, NFSv3, and the Server Message Block (SMB) protocol family
+<span>[<a href="#MS-SMB2" class="cite xref">MS-SMB2</a>]</span>.  The same directories are reachable from all of those
+protocols and, in many such deployments, from server-side policy
+components (placement, replication, archival, tiering) that act on
+the namespace without a client connection.  Changes to a directory's
+contents -- entries added, entries removed, entries whose attributes
+have been updated -- may therefore originate at any time from any
+of those sources.<a href="#section-2-1" class="pilcrow">¶</a></p>
+<p id="section-2-2">NFSv4.2 client implementations typically cache directory-entry
+metadata returned by READDIR for a period bounded by either the
+directory's change attribute or a heuristic timeout.  In deployments
+of the kind described above, the rate of server-side directory churn
+can exceed what those caches can track, so that an NFSv4.2 client
+serving READDIR responses from its local cache will, with some
+regularity, return entries or attribute values that no longer reflect
+the current state of the directory at the server.<a href="#section-2-2" class="pilcrow">¶</a></p>
+<p id="section-2-3">The fattr4_uncacheable_dirent_metadata attribute is the server's
+mechanism to identify a directory for which this risk is high
+enough that client-side caching is not safe.  When the server sets
+the attribute on a directory, an honouring client retrieves
+directory-entry metadata from the server on each READDIR rather
+than from a local cache.<a href="#section-2-3" class="pilcrow">¶</a></p>
+<p id="section-2-4">In the deployments that motivate this work, no attribute values
+returned for a given dirent vary across users.  The server returns
+the same set of entries with the same attribute values to all NFSv4
+clients of a given directory regardless of the requesting user's
+identity.<a href="#section-2-4" class="pilcrow">¶</a></p>
+<p id="section-2-5">The SMB protocol family includes a related concept called
+Access-Based Enumeration (ABE) <span>[<a href="#MS-ABE" class="cite xref">MS-ABE</a>]</span> <span>[<a href="#MS-SMB2" class="cite xref">MS-SMB2</a>]</span>, in which an
+SMB server filters the visible set of directory entries by the
+requesting user's access rights.  ABE is named here as background
+for readers familiar with the SMB ecosystem.  The NFSv4.2 attribute
+defined in this document is not an NFS surface for ABE: it does not
+require, specify, or depend on per-user directory filtering, and
+the servers that motivate this work do not apply such filtering to
+NFSv4.2 READDIR responses.<a href="#section-2-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="definitions">
-<section id="section-2">
+<section id="section-3">
       <h2 id="name-definitions">
-<a href="#section-2" class="section-number selfRef">2. </a><a href="#name-definitions" class="section-name selfRef">Definitions</a>
+<a href="#section-3" class="section-number selfRef">3. </a><a href="#name-definitions" class="section-name selfRef">Definitions</a>
       </h2>
-<span class="break"></span><dl class="dlParallel" id="section-2-1">
-        <dt id="section-2-1.1">Access Based Enumeration (ABE)</dt>
-        <dd style="margin-left: 1.5em" id="section-2-1.2">
-          <p id="section-2-1.2.1">When servicing a READDIR or GETATTR operation, the server provides
-results based on the access permissions of the user making the request.<a href="#section-2-1.2.1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-3-1">
+        <dt id="section-3-1.1">Access Based Enumeration (ABE)</dt>
+        <dd style="margin-left: 1.5em" id="section-3-1.2">
+          <p id="section-3-1.2.1">A Server Message Block (SMB) <span>[<a href="#MS-SMB2" class="cite xref">MS-SMB2</a>]</span> feature in which the
+server filters the visible set of directory entries by the
+requesting user's access rights <span>[<a href="#MS-ABE" class="cite xref">MS-ABE</a>]</span>.  Used in this document
+only as background for readers familiar with the SMB ecosystem;
+the NFSv4.2 attribute defined here is not an NFS surface for ABE.<a href="#section-3-1.2.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
-<dt id="section-2-1.3">dirent</dt>
-        <dd style="margin-left: 1.5em" id="section-2-1.4">
-          <p id="section-2-1.4.1">A directory-entry representing a file or subdirectory and its
-associated attributes.<a href="#section-2-1.4.1" class="pilcrow">¶</a></p>
+<dt id="section-3-1.3">dirent</dt>
+        <dd style="margin-left: 1.5em" id="section-3-1.4">
+          <p id="section-3-1.4.1">A directory-entry representing a file or subdirectory and its
+associated attributes.<a href="#section-3-1.4.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
-<dt id="section-2-1.5">dirent caching</dt>
-        <dd style="margin-left: 1.5em" id="section-2-1.6">
-          <p id="section-2-1.6.1">A client-side cache of directory-entry names and associated file
+<dt id="section-3-1.5">dirent caching</dt>
+        <dd style="margin-left: 1.5em" id="section-3-1.6">
+          <p id="section-3-1.6.1">A client-side cache of directory-entry names and associated file
 object metadata, used to avoid repeated directory lookup and attribute
-retrieval.<a href="#section-2-1.6.1" class="pilcrow">¶</a></p>
+retrieval.<a href="#section-3-1.6.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
-<dt id="section-2-1.7">uncacheable dirent metadata attribute</dt>
-        <dd style="margin-left: 1.5em" id="section-2-1.8">
-          <p id="section-2-1.8.1">An NFSv4.2 file attribute that advises clients not to cache
+<dt id="section-3-1.7">uncacheable dirent metadata attribute</dt>
+        <dd style="margin-left: 1.5em" id="section-3-1.8">
+          <p id="section-3-1.8.1">An NFSv4.2 file attribute that advises clients not to cache
 directory-entry metadata associated with file objects, including
-names, size, timestamps, and visibility.<a href="#section-2-1.8.1" class="pilcrow">¶</a></p>
+names, size, and timestamps.<a href="#section-3-1.8.1" class="pilcrow">¶</a></p>
 </dd>
       <dd class="break"></dd>
 </dl>
-<p id="section-2-2">This document assumes familiarity with NFSv4.2 operations, attributes,
-and error handling as defined in <span>[<a href="#RFC8881" class="cite xref">RFC8881</a>]</span> and <span>[<a href="#RFC7862" class="cite xref">RFC7862</a>]</span>.<a href="#section-2-2" class="pilcrow">¶</a></p>
+<p id="section-3-2">This document assumes familiarity with NFSv4.2 operations, attributes,
+and error handling as defined in <span>[<a href="#RFC8881" class="cite xref">RFC8881</a>]</span> and <span>[<a href="#RFC7862" class="cite xref">RFC7862</a>]</span>.<a href="#section-3-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="requirements-language">
-<section id="section-3">
+<section id="section-4">
       <h2 id="name-requirements-language">
-<a href="#section-3" class="section-number selfRef">3. </a><a href="#name-requirements-language" class="section-name selfRef">Requirements Language</a>
+<a href="#section-4" class="section-number selfRef">4. </a><a href="#name-requirements-language" class="section-name selfRef">Requirements Language</a>
       </h2>
-<p id="section-3-1">The key words "<span class="bcp14">MUST</span>", "<span class="bcp14">MUST NOT</span>", "<span class="bcp14">REQUIRED</span>", "<span class="bcp14">SHALL</span>", "<span class="bcp14">SHALL NOT</span>", "<span class="bcp14">SHOULD</span>", "<span class="bcp14">SHOULD NOT</span>", "<span class="bcp14">RECOMMENDED</span>", "<span class="bcp14">NOT RECOMMENDED</span>",
+<p id="section-4-1">The key words "<span class="bcp14">MUST</span>", "<span class="bcp14">MUST NOT</span>", "<span class="bcp14">REQUIRED</span>", "<span class="bcp14">SHALL</span>", "<span class="bcp14">SHALL NOT</span>", "<span class="bcp14">SHOULD</span>", "<span class="bcp14">SHOULD NOT</span>", "<span class="bcp14">RECOMMENDED</span>", "<span class="bcp14">NOT RECOMMENDED</span>",
 "<span class="bcp14">MAY</span>", and "<span class="bcp14">OPTIONAL</span>" in this document are to be interpreted as
 described in BCP 14 <span>[<a href="#RFC2119" class="cite xref">RFC2119</a>]</span> <span>[<a href="#RFC8174" class="cite xref">RFC8174</a>]</span> when, and only when, they
-appear in all capitals, as shown here.<a href="#section-3-1" class="pilcrow">¶</a></p>
+appear in all capitals, as shown here.<a href="#section-4-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="caching-of-directory-entry-metadata">
-<section id="section-4">
+<section id="section-5">
       <h2 id="name-caching-of-directory-entry-">
-<a href="#section-4" class="section-number selfRef">4. </a><a href="#name-caching-of-directory-entry-" class="section-name selfRef">Caching of Directory-Entry Metadata</a>
+<a href="#section-5" class="section-number selfRef">5. </a><a href="#name-caching-of-directory-entry-" class="section-name selfRef">Caching of Directory-Entry Metadata</a>
       </h2>
-<p id="section-4-1">The fattr4_uncacheable_dirent_metadata attribute is a read-write boolean
+<p id="section-5-1">The fattr4_uncacheable_dirent_metadata attribute is a read-write boolean
 attribute that applies to directory objects and has a data type
 of boolean.  The attribute is not set on individual file objects
 and applies only to directory-entry metadata returned from the
-directory on which it is set.<a href="#section-4-1" class="pilcrow">¶</a></p>
-<p id="section-4-2">The uncacheable dirent metadata attribute enables correct presentation
-of directory-entry visibility and attributes in environments where
-such information is not uniformly cacheable. As such, it is an
-<span class="bcp14">OPTIONAL</span> attribute to implement for NFSv4.2.  If both the client
-and the server support this attribute, the client <span class="bcp14">MUST NOT</span> reuse
-directory-entry metadata returned by READDIR or related operations
-for different users when the attribute is set on the directory.<a href="#section-4-2" class="pilcrow">¶</a></p>
-<p id="section-4-3">This document specifies the required observable behavior rather
+directory on which it is set.<a href="#section-5-1" class="pilcrow">¶</a></p>
+<p id="section-5-2">The uncacheable dirent metadata attribute enables correct presentation
+of directory-entry metadata in deployments where directory contents
+may change at the server at a rate that exceeds the validity of
+typical client caches. As such, it is an <span class="bcp14">OPTIONAL</span> attribute to
+implement for NFSv4.2.  If both the client and the server support
+this attribute, and the attribute is set on a directory, the
+client <span class="bcp14">MUST</span> retrieve directory-entry metadata from the server on
+each READDIR rather than serving the response from a local cache.<a href="#section-5-2" class="pilcrow">¶</a></p>
+<p id="section-5-3">This document specifies the required observable behavior rather
 than mandating a particular internal implementation strategy.
-Clients <span class="bcp14">MAY</span> employ more sophisticated mechanisms, such as per-user
-directory entry caching, provided that the externally visible
-behavior is equivalent to not caching directory-entry metadata
-across users.<a href="#section-4-3" class="pilcrow">¶</a></p>
-<p id="section-4-4">Allowing clients to set this attribute provides a portable mechanism
+Clients <span class="bcp14">MAY</span> employ more sophisticated mechanisms, such as
+time-limited caches that revalidate against the server on each
+READDIR, provided that the externally visible behavior is
+equivalent to retrieving directory-entry metadata from the
+server on each READDIR.<a href="#section-5-3" class="pilcrow">¶</a></p>
+<p id="section-5-4">Allowing clients to set this attribute provides a portable mechanism
 to request that directory-entry metadata not be cached, without
 requiring changes to application behavior or out-of-band administrative
-configuration.<a href="#section-4-4" class="pilcrow">¶</a></p>
-<p id="section-4-5">A client can determine whether the uncacheable dirent metadata attribute
+configuration.<a href="#section-5-4" class="pilcrow">¶</a></p>
+<p id="section-5-5">A client can determine whether the uncacheable dirent metadata attribute
 is supported for a given directory by examining the supported_attrs
 attribute for that directory's filesystem or by probing support using
-the procedures described in <span>[<a href="#RFC8178" class="cite xref">RFC8178</a>]</span>.<a href="#section-4-5" class="pilcrow">¶</a></p>
-<p id="section-4-6">The only way that the server can determine that the client supports
+the procedures described in <span>[<a href="#RFC8178" class="cite xref">RFC8178</a>]</span>.<a href="#section-5-5" class="pilcrow">¶</a></p>
+<p id="section-5-6">The only way that the server can determine that the client supports
 the attribute is if the client sends either a GETATTR or a SETATTR
-with the uncacheable dirent metadata attribute.<a href="#section-4-6" class="pilcrow">¶</a></p>
-<p id="section-4-7">The uncacheable dirent metadata attribute governs caching behavior of
+with the uncacheable dirent metadata attribute.<a href="#section-5-6" class="pilcrow">¶</a></p>
+<p id="section-5-7">The uncacheable dirent metadata attribute governs caching behavior of
 directory-entry metadata returned by READDIR and related operations,
-not the directory object itself.<a href="#section-4-7" class="pilcrow">¶</a></p>
-<p id="section-4-8">The uncacheable dirent metadata attribute addresses a different
+not the directory object itself.<a href="#section-5-7" class="pilcrow">¶</a></p>
+<p id="section-5-8">The uncacheable dirent metadata attribute addresses a different
 aspect of client-side caching than fattr4_uncacheable_file_data
 (<span>[<a href="#I-D.ietf-nfsv4-uncacheable-files" class="cite xref">I-D.ietf-nfsv4-uncacheable-files</a>]</span>). The file data attribute
 governs caching of file contents, while the dirent metadata attribute
 governs caching of directory-entry metadata returned by READDIR and
 related operations. The attributes are independent and may be used
-separately.<a href="#section-4-8" class="pilcrow">¶</a></p>
-<p id="section-4-9">This attribute does not define behavior for positive or negative name
+separately.<a href="#section-5-8" class="pilcrow">¶</a></p>
+<p id="section-5-9">This attribute does not define behavior for positive or negative name
 caching or for caching of LOOKUP results outside the scope of
-directory-entry metadata returned by READDIR and related operations.<a href="#section-4-9" class="pilcrow">¶</a></p>
-<p id="section-4-10">Directory delegations do not address per-user directory-entry metadata
-visibility and therefore cannot replace the semantics defined by
-the uncacheable dirent metadata attribute.<a href="#section-4-10" class="pilcrow">¶</a></p>
-<p id="section-4-11">Clients <span class="bcp14">MUST NOT</span> assume that directory-entry metadata is globally
-valid across different access contexts.<a href="#section-4-11" class="pilcrow">¶</a></p>
+directory-entry metadata returned by READDIR and related operations.<a href="#section-5-9" class="pilcrow">¶</a></p>
+<p id="section-5-10">Directory delegations grant a client exclusive caching rights subject
+to server recall.  In deployments where directory contents change at
+a rate that makes per-change recall impractical, a directory delegation
+does not provide the always-refetch semantics defined by the uncacheable
+dirent metadata attribute.  These mechanisms are independent.<a href="#section-5-10" class="pilcrow">¶</a></p>
+<p id="section-5-11">Clients <span class="bcp14">MUST NOT</span> assume that directory-entry metadata is valid beyond
+the READDIR that produced it.<a href="#section-5-11" class="pilcrow">¶</a></p>
 <div id="sec_dirents">
-<section id="section-4.1">
+<section id="section-5.1">
         <h3 id="name-uncacheable-directory-entry">
-<a href="#section-4.1" class="section-number selfRef">4.1. </a><a href="#name-uncacheable-directory-entry" class="section-name selfRef">Uncacheable Directory-Entry Metadata</a>
+<a href="#section-5.1" class="section-number selfRef">5.1. </a><a href="#name-uncacheable-directory-entry" class="section-name selfRef">Uncacheable Directory-Entry Metadata</a>
         </h3>
-<p id="section-4.1-1">The fattr4_uncacheable_dirent_metadata attribute is a read-write boolean
+<p id="section-5.1-1">The fattr4_uncacheable_dirent_metadata attribute is a read-write boolean
 attribute that applies to directory objects.
 Authorization to query or modify this attribute is governed by
-existing NFSv4.2 authorization mechanisms.<a href="#section-4.1-1" class="pilcrow">¶</a></p>
-<p id="section-4.1-2">If a directory object has the uncacheable dirent metadata attribute
-set, the client is advised not to cache directory-entry metadata.
-In such cases, the client retrieves directory-entry attributes from
-the server for each request, ensuring that the returned metadata
-reflects the current state and visibility as determined by the
-server.  Clients <span class="bcp14">MUST NOT</span> reuse directory-entry metadata retrieved
-on behalf of one user to satisfy requests made on behalf of another
-user.<a href="#section-4.1-2" class="pilcrow">¶</a></p>
-<p id="section-4.1-3">The uncacheable dirent metadata attribute does not modify the
+existing NFSv4.2 authorization mechanisms.<a href="#section-5.1-1" class="pilcrow">¶</a></p>
+<p id="section-5.1-2">If a directory object has the uncacheable dirent metadata attribute
+set, the client <span class="bcp14">MUST</span> retrieve directory-entry metadata from the
+server on each READDIR rather than serving the response from a
+local cache.  This ensures that the returned metadata reflects
+the current state of the directory as determined by the server.<a href="#section-5.1-2" class="pilcrow">¶</a></p>
+<p id="section-5.1-3">The uncacheable dirent metadata attribute does not modify the
 semantics of the NFSv4.2 change attribute.  Clients <span class="bcp14">MUST</span> continue to
 use the change attribute to detect directory modifications and to
 determine when directory contents may have changed, even when
 directory-entry metadata caching is suppressed.  Suppressing caching
 of directory-entry metadata does not remove the need for change-based
-validation.<a href="#section-4.1-3" class="pilcrow">¶</a></p>
-<p id="section-4.1-4">Servers <span class="bcp14">SHOULD</span> assume that clients which do not query or set this
+validation.<a href="#section-5.1-3" class="pilcrow">¶</a></p>
+<p id="section-5.1-4">Servers <span class="bcp14">SHOULD</span> assume that clients which do not query or set this
 attribute may cache directory-entry metadata, and therefore <span class="bcp14">SHOULD NOT</span> rely on this attribute for correctness unless client support
-is confirmed.<a href="#section-4.1-4" class="pilcrow">¶</a></p>
-<p id="section-4.1-5">Authorization to set or modify this attribute is governed by existing
-NFSv4.2 authorization mechanisms.<a href="#section-4.1-5" class="pilcrow">¶</a></p>
-<p id="section-4.1-6">If a client holds a directory delegation for a directory that becomes
-marked with the uncacheable dirent metadata attribute, the server is
-expected to ensure that the client observes the updated attribute
-value.  A server <span class="bcp14">MAY</span> recall an existing directory delegation in order
-to enforce the semantics of this attribute.  Clients that observe the
-attribute set while holding a directory delegation <span class="bcp14">MUST</span> ensure that
-directory-entry metadata is not cached inconsistently with the
-attribute semantics.<a href="#section-4.1-6" class="pilcrow">¶</a></p>
-<p id="section-4.1-7">Because this attribute provides advisory guidance rather than mandatory
-access control, servers cannot rely on client compliance for security
-enforcement in adversarial environments.<a href="#section-4.1-7" class="pilcrow">¶</a></p>
+is confirmed.<a href="#section-5.1-4" class="pilcrow">¶</a></p>
+<p id="section-5.1-5">A directory delegation grants a client the right to cache
+directory-entry metadata until the server recalls the delegation.
+The always-refetch rule of this attribute is incompatible with that
+grant.  If a directory has both the uncacheable dirent metadata
+attribute set and an outstanding directory delegation, the server
+<span class="bcp14">MUST</span> recall the delegation, after which the client follows the
+always-refetch rule on each subsequent READDIR.  A server <span class="bcp14">MUST NOT</span>
+grant a new directory delegation on a directory while the
+uncacheable dirent metadata attribute is set on that directory.<a href="#section-5.1-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
 </div>
 <div id="example-directory-enumeration-with-and-without-dirent-metadata-caching">
-<section id="section-5">
+<section id="section-6">
       <h2 id="name-example-directory-enumerati">
-<a href="#section-5" class="section-number selfRef">5. </a><a href="#name-example-directory-enumerati" class="section-name selfRef">Example: Directory Enumeration With and Without Dirent Metadata Caching</a>
+<a href="#section-6" class="section-number selfRef">6. </a><a href="#name-example-directory-enumerati" class="section-name selfRef">Example: Directory Enumeration With and Without Dirent Metadata Caching</a>
       </h2>
-<p id="section-5-1">This example illustrates the difference in client-visible behavior when
+<p id="section-6-1">This example illustrates the difference in client-visible behavior when
 directory-entry metadata caching is enabled versus when the uncacheable
-dirent metadata attribute is set on a directory.<a href="#section-5-1" class="pilcrow">¶</a></p>
+dirent metadata attribute is set on a directory.  In both scenarios,
+the set of entries in the directory does not change between the two
+calls; an attribute value of one entry is updated at the server
+between calls.  The difference is whether the second call observes
+the updated attribute value.<a href="#section-6-1" class="pilcrow">¶</a></p>
 <div id="classic-directory-enumeration-directory-entry-metadata-cached">
-<section id="section-5.1">
+<section id="section-6.1">
         <h3 id="name-classic-directory-enumerati">
-<a href="#section-5.1" class="section-number selfRef">5.1. </a><a href="#name-classic-directory-enumerati" class="section-name selfRef">Classic Directory Enumeration (Directory-Entry Metadata Cached)</a>
+<a href="#section-6.1" class="section-number selfRef">6.1. </a><a href="#name-classic-directory-enumerati" class="section-name selfRef">Classic Directory Enumeration (Directory-Entry Metadata Cached)</a>
         </h3>
-<p id="section-5.1-1">In this scenario, the client caches directory-entry metadata obtained
-from the server and reuses it for subsequent users.<a href="#section-5.1-1" class="pilcrow">¶</a></p>
+<p id="section-6.1-1">In this scenario, the client caches directory-entry metadata obtained
+from the server and reuses it for the second readdir.<a href="#section-6.1-1" class="pilcrow">¶</a></p>
 <span id="name-directory-entry-metadata-ca"></span><div id="fig-cached-dirents">
 <figure id="figure-1">
-          <div class="alignLeft art-text artwork" id="section-5.1-2.1">
+          <div class="alignLeft art-text artwork" id="section-6.1-2.1">
 <pre>
-User A Process          NFSv4.2 Client        NFSv4.2 Server
--------------           --------------        --------------
+Application             NFSv4.2 Client        NFSv4.2 Server
+-----------             --------------        --------------
 readdir("/dir")
    |
    |                     READDIR
    |--------------------&gt;------------------------&gt;
-   |                     entries: {a,b,c}
+   |                     entries:
+   |                       a (size=100)
+   |                       b (size=200)
+   |                       c (size=300)
    |&lt;--------------------&lt;------------------------
    |
 (entries cached in client)
 
-User B Process
--------------
+                                            (concurrent writer extends
+                                             a from size=100 to
+                                             size=500)
+
 readdir("/dir")
    |
    |                     (no network traffic)
    |                     entries returned from
-   |                     client cache: {a,b,c}
+   |                     client cache:
+   |                       a (size=100)
+   |                       b (size=200)
+   |                       c (size=300)
 </pre>
 </div>
 <figcaption><a href="#figure-1" class="selfRef">Figure 1</a>:
 <a href="#name-directory-entry-metadata-ca" class="selfRef">Directory-Entry Metadata Cached</a>
           </figcaption></figure>
 </div>
-<p id="section-5.1-3">In this case, <a href="#fig-cached-dirents" class="auto internal xref">Figure 1</a> shows directory-entry metadata
-retrieved on behalf of User A is reused to satisfy a directory read
-for User B. This behavior is typical of legacy NFSv4.2 clients and
-maximizes performance, but it can result in incorrect or unauthorized
-directory views in multi-user or multi-protocol environments.<a href="#section-5.1-3" class="pilcrow">¶</a></p>
+<p id="section-6.1-3">In this case, <a href="#fig-cached-dirents" class="auto internal xref">Figure 1</a> shows that directory-entry
+metadata retrieved by the first READDIR is reused to satisfy the
+second.  The cached response reflects entry a's size as it was
+at the time of the first call; it does not reflect the update
+that occurred at the server between calls.  This behavior is
+typical of legacy NFSv4.2 clients and maximizes performance, but
+it can result in applications observing dirent attribute values
+that do not reflect the current state of the server.<a href="#section-6.1-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="directory-enumeration-with-uncacheable-dirent-metadata">
-<section id="section-5.2">
+<section id="section-6.2">
         <h3 id="name-directory-enumeration-with-">
-<a href="#section-5.2" class="section-number selfRef">5.2. </a><a href="#name-directory-enumeration-with-" class="section-name selfRef">Directory Enumeration With Uncacheable Dirent Metadata</a>
+<a href="#section-6.2" class="section-number selfRef">6.2. </a><a href="#name-directory-enumeration-with-" class="section-name selfRef">Directory Enumeration With Uncacheable Dirent Metadata</a>
         </h3>
-<p id="section-5.2-1">In this scenario, the directory has the uncacheable dirent metadata
-attribute set. The client does not retain directory-entry metadata
-across directory reads for different users.<a href="#section-5.2-1" class="pilcrow">¶</a></p>
+<p id="section-6.2-1">In this scenario, the directory has the uncacheable dirent metadata
+attribute set.  The client retrieves directory-entry metadata from
+the server on each READDIR.<a href="#section-6.2-1" class="pilcrow">¶</a></p>
 <span id="name-directory-entry-metadata-no"></span><div id="fig-uncached-dirents">
 <figure id="figure-2">
-          <div class="alignLeft art-text artwork" id="section-5.2-2.1">
+          <div class="alignLeft art-text artwork" id="section-6.2-2.1">
 <pre>
-User A Process          NFSv4.2 Client        NFSv4.2 Server
--------------           --------------        --------------
+Application             NFSv4.2 Client        NFSv4.2 Server
+-----------             --------------        --------------
 readdir("/dir")
    |
    |                     READDIR
    |--------------------&gt;------------------------&gt;
-   |                     entries visible to A:
-   |                     {a,b}
+   |                     entries:
+   |                       a (size=100)
+   |                       b (size=200)
+   |                       c (size=300)
    |&lt;--------------------&lt;------------------------
    |
 (no directory-entry metadata retained)
 
-User B Process
--------------
+                                            (concurrent writer extends
+                                             a from size=100 to
+                                             size=500)
+
 readdir("/dir")
    |
    |                     READDIR
    |--------------------&gt;------------------------&gt;
-   |                     entries visible to B:
-   |                     {b,c}
+   |                     entries:
+   |                       a (size=500)
+   |                       b (size=200)
+   |                       c (size=300)
    |&lt;--------------------&lt;------------------------
 </pre>
 </div>
@@ -1550,166 +1566,163 @@ readdir("/dir")
 <a href="#name-directory-entry-metadata-no" class="selfRef">Directory-Entry Metadata Not Cached</a>
           </figcaption></figure>
 </div>
-<p id="section-5.2-3">In this case, <a href="#fig-uncached-dirents" class="auto internal xref">Figure 2</a> shows each directory read
-results in a READDIR operation sent to the server for each enumeration
-request, ensuring that directory-entry metadata reflects the current
-visibility and attributes appropriate to the requesting user. The
-client may still cache other information, provided the externally
-observable behavior is equivalent to not caching directory-entry
-metadata.<a href="#section-5.2-3" class="pilcrow">¶</a></p>
+<p id="section-6.2-3">In this case, <a href="#fig-uncached-dirents" class="auto internal xref">Figure 2</a> shows that each readdir
+request results in a READDIR operation sent to the server, so
+the second call observes the updated size of entry a.  The set
+of entries returned is unchanged between calls; only the
+attribute value differs.  The client may still cache other
+information, provided the externally observable behavior is
+equivalent to retrieving directory-entry metadata from the
+server on each READDIR.<a href="#section-6.2-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="discussion">
-<section id="section-5.3">
+<section id="section-6.3">
         <h3 id="name-discussion">
-<a href="#section-5.3" class="section-number selfRef">5.3. </a><a href="#name-discussion" class="section-name selfRef">Discussion</a>
+<a href="#section-6.3" class="section-number selfRef">6.3. </a><a href="#name-discussion" class="section-name selfRef">Discussion</a>
         </h3>
-<p id="section-5.3-1">This example demonstrates that the uncacheable dirent metadata attribute
-does not mandate a particular client implementation, but it does require
-the per-user non-reuse behavior specified in <a href="#sec_dirents" class="auto internal xref">Section 4.1</a>.  The
-attribute ensures correctness and interoperability in environments where
-directory contents or visibility may differ across users, clients, or
-protocols.<a href="#section-5.3-1" class="pilcrow">¶</a></p>
+<p id="section-6.3-1">This example demonstrates that the uncacheable dirent metadata
+attribute does not mandate a particular client implementation, but
+it does require the always-refetch behavior specified in
+<a href="#sec_dirents" class="auto internal xref">Section 5.1</a>.  The attribute ensures that NFSv4.2 clients
+observe directory contents reflecting the current state of the
+server in deployments where the rate of directory change exceeds
+the validity of typical client caches.<a href="#section-6.3-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
 </div>
 <div id="implementation-status">
-<section id="section-6">
+<section id="section-7">
       <h2 id="name-implementation-status">
-<a href="#section-6" class="section-number selfRef">6. </a><a href="#name-implementation-status" class="section-name selfRef">Implementation Status</a>
+<a href="#section-7" class="section-number selfRef">7. </a><a href="#name-implementation-status" class="section-name selfRef">Implementation Status</a>
       </h2>
-<p id="section-6-1">Note to RFC Editor: please remove this section prior to publication.<a href="#section-6-1" class="pilcrow">¶</a></p>
-<p id="section-6-2">There is a prototype Hammerspace server which implements the
+<p id="section-7-1">Note to RFC Editor: please remove this section prior to publication.<a href="#section-7-1" class="pilcrow">¶</a></p>
+<p id="section-7-2">There is a prototype Hammerspace server which implements the
 uncacheable dirent metadata attribute and a prototype Linux client
-which treats the attribute as an indication not to reuse directory-
-entry metadata returned by READDIR across users.<a href="#section-6-2" class="pilcrow">¶</a></p>
-<p id="section-6-3">In the prototype, directories configured for ABE-like behavior are
-marked with the fattr4_uncacheable_dirent_metadata attribute.<a href="#section-6-3" class="pilcrow">¶</a></p>
-<p id="section-6-4">The client implementation suppresses reuse of directory-entry
-metadata across users and retrieves directory-entry metadata from
-the server as needed when servicing directory enumeration requests.
-Clients may employ more sophisticated mechanisms, such as per-user
-directory-entry caching, provided that the externally observable
-behavior matches the semantics described in this document.<a href="#section-6-4" class="pilcrow">¶</a></p>
-<p id="section-6-5">Experience with the prototype indicates that the attribute enables
-servers to present user-specific directory-entry visibility and
-attributes while remaining compatible with existing NFSv4.2 semantics.<a href="#section-6-5" class="pilcrow">¶</a></p>
+which treats the attribute as an indication to retrieve directory-
+entry metadata from the server on each READDIR rather than from a
+local cache.<a href="#section-7-2" class="pilcrow">¶</a></p>
+<p id="section-7-3">In the prototype, directories whose contents change at the server
+at a rate exceeding typical client cache lifetimes are marked with
+the fattr4_uncacheable_dirent_metadata attribute.<a href="#section-7-3" class="pilcrow">¶</a></p>
+<p id="section-7-4">The Linux client decodes the attribute in fs/nfs/nfs4xdr.c into a
+per-inode flag (nfsi-&gt;uncacheable).  The readdir path in fs/nfs/dir.c
+consults this flag to skip the readdir cache and refetch from the
+server on each readdir call.  Clients may employ more sophisticated
+mechanisms, such as time-limited caches that revalidate against the
+server on each READDIR, provided that the externally observable
+behavior matches the always-refetch semantics described in this
+document.<a href="#section-7-4" class="pilcrow">¶</a></p>
+<p id="section-7-5">At the time of writing, the prototype encodes the attribute on the
+wire alongside the companion file-data attribute defined in
+<span>[<a href="#I-D.ietf-nfsv4-uncacheable-files" class="cite xref">I-D.ietf-nfsv4-uncacheable-files</a>]</span> as a single shared flag.  A
+follow-on prototype branch separates the two attributes as the
+two documents specify.<a href="#section-7-5" class="pilcrow">¶</a></p>
+<p id="section-7-6">Experience with the prototype indicates that the attribute enables
+servers to identify directories whose contents change faster than
+typical NFSv4.2 client cache lifetimes can track, while remaining
+compatible with existing NFSv4.2 semantics.<a href="#section-7-6" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="xdr-for-uncacheable-dirents-attribute">
-<section id="section-7">
+<section id="section-8">
       <h2 id="name-xdr-for-uncacheable-dirents">
-<a href="#section-7" class="section-number selfRef">7. </a><a href="#name-xdr-for-uncacheable-dirents" class="section-name selfRef">XDR for Uncacheable Dirents Attribute</a>
+<a href="#section-8" class="section-number selfRef">8. </a><a href="#name-xdr-for-uncacheable-dirents" class="section-name selfRef">XDR for Uncacheable Dirents Attribute</a>
       </h2>
-<div class="lang-xdr sourcecode" id="section-7-1">
+<div class="lang-xdr sourcecode" id="section-8-1">
 <pre>
 ///
 /// typedef bool            fattr4_uncacheable_dirent_metadata;
 ///
 /// const FATTR4_UNCACHEABLE_DIRENT_METADATA   = 88;
 ///
-</pre><a href="#section-7-1" class="pilcrow">¶</a>
+</pre><a href="#section-8-1" class="pilcrow">¶</a>
 </div>
 </section>
 </div>
 <div id="extraction-of-xdr">
-<section id="section-8">
+<section id="section-9">
       <h2 id="name-extraction-of-xdr">
-<a href="#section-8" class="section-number selfRef">8. </a><a href="#name-extraction-of-xdr" class="section-name selfRef">Extraction of XDR</a>
+<a href="#section-9" class="section-number selfRef">9. </a><a href="#name-extraction-of-xdr" class="section-name selfRef">Extraction of XDR</a>
       </h2>
-<p id="section-8-1">This document contains the external data representation (XDR)
+<p id="section-9-1">This document contains the external data representation (XDR)
 <span>[<a href="#RFC4506" class="cite xref">RFC4506</a>]</span> description of the uncacheable dirent metadata attribute.  The XDR
 description is presented in a manner that facilitates easy extraction
 into a ready-to-compile format. To extract the machine-readable XDR
-description, use the following shell script:<a href="#section-8-1" class="pilcrow">¶</a></p>
-<div class="lang-shell sourcecode" id="section-8-2">
+description, use the following shell script:<a href="#section-9-1" class="pilcrow">¶</a></p>
+<div class="lang-shell sourcecode" id="section-9-2">
 <pre>
 #!/bin/sh
 grep '^ *///' $* | sed 's?^ */// ??' | sed 's?^ *///$??'
-</pre><a href="#section-8-2" class="pilcrow">¶</a>
+</pre><a href="#section-9-2" class="pilcrow">¶</a>
 </div>
-<p id="section-8-3">For example, if the script is named 'extract.sh' and this document is
-named 'spec.txt', execute the following command:<a href="#section-8-3" class="pilcrow">¶</a></p>
-<div class="lang-shell sourcecode" id="section-8-4">
+<p id="section-9-3">For example, if the script is named 'extract.sh' and this document is
+named 'spec.txt', execute the following command:<a href="#section-9-3" class="pilcrow">¶</a></p>
+<div class="lang-shell sourcecode" id="section-9-4">
 <pre>
 sh extract.sh &lt; spec.txt &gt; uncacheable_prot.x
-</pre><a href="#section-8-4" class="pilcrow">¶</a>
+</pre><a href="#section-9-4" class="pilcrow">¶</a>
 </div>
-<p id="section-8-5">This script removes leading blank spaces and the sentinel sequence '///'
+<p id="section-9-5">This script removes leading blank spaces and the sentinel sequence '///'
 from each line. XDR descriptions with the sentinel sequence are embedded
-throughout the document.<a href="#section-8-5" class="pilcrow">¶</a></p>
-<p id="section-8-6">Note that the XDR code contained in this document depends on types from
+throughout the document.<a href="#section-9-5" class="pilcrow">¶</a></p>
+<p id="section-9-6">Note that the XDR code contained in this document depends on types from
 the NFSv4.2 nfs4_prot.x file (generated from <span>[<a href="#RFC7863" class="cite xref">RFC7863</a>]</span>).  This includes
 both nfs types that end with a 4, such as offset4, length4, etc., as
-well as more generic types such as uint32_t and uint64_t.<a href="#section-8-6" class="pilcrow">¶</a></p>
-<p id="section-8-7">While the XDR can be appended to that from <span>[<a href="#RFC7863" class="cite xref">RFC7863</a>]</span>, the code snippets
-should be placed in their appropriate sections within the existing XDR.<a href="#section-8-7" class="pilcrow">¶</a></p>
+well as more generic types such as uint32_t and uint64_t.<a href="#section-9-6" class="pilcrow">¶</a></p>
+<p id="section-9-7">While the XDR can be appended to that from <span>[<a href="#RFC7863" class="cite xref">RFC7863</a>]</span>, the code snippets
+should be placed in their appropriate sections within the existing XDR.<a href="#section-9-7" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="security-considerations">
-<section id="section-9">
+<section id="section-10">
       <h2 id="name-security-considerations">
-<a href="#section-9" class="section-number selfRef">9. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
+<a href="#section-10" class="section-number selfRef">10. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
       </h2>
-<p id="section-9-1">This attribute is not intended to provide a security boundary or to
-replace server-enforced access control.  Its primary purpose is to
-improve correctness and interoperability in environments where
-directory-entry metadata visibility varies across users or protocols.
-Servers <span class="bcp14">MUST NOT</span> rely on this mechanism alone to prevent unauthorized
-access to directory entries.<a href="#section-9-1" class="pilcrow">¶</a></p>
-<p id="section-9-2">Authorization to set or modify the fattr4_uncacheable_dirent_metadata
+<p id="section-10-1">This attribute is not a security mechanism.  It addresses correctness
+of client-side caching when client-cached directory-entry metadata
+can become stale relative to the current state of the directory at
+the server.  It does not change NFSv4.2 authentication or authorization
+semantics, and it does not impose access controls on the entries it
+describes.<a href="#section-10-1" class="pilcrow">¶</a></p>
+<p id="section-10-2">Authorization to set or modify the fattr4_uncacheable_dirent_metadata
 attribute is governed by existing NFSv4.2 authorization mechanisms.
 Servers <span class="bcp14">MAY</span> restrict modification of this attribute based on local
 policy, file ownership, or access control rules.  This document does
-not define a new authorization model.<a href="#section-9-2" class="pilcrow">¶</a></p>
-<p id="section-9-3">The discussion of users in this section is independent of the
-specific user identity representation employed by the client or
-server.  This document does not distinguish between users identified
-via NFSv4.2 user@domain strings, RPC authentication identities, or
-local operating system user identifiers.  The uncacheable dirent
-metadata attribute does not alter NFSv4.2 authentication or
-authorization semantics and does not depend on any particular user
-identity model.<a href="#section-9-3" class="pilcrow">¶</a></p>
-<p id="section-9-4">A client <span class="bcp14">MUST NOT</span> make access or visibility decisions for one
-user based on directory-entry metadata retrieved on behalf of
-another user.  These decisions <span class="bcp14">MUST</span> be made by the server.  If the
-client supports Labeled NFS (see <span>[<a href="#RFC7204" class="cite xref">RFC7204</a>]</span> for background), the
-client <span class="bcp14">MUST</span> locally enforce the MAC security policies defined by
-NFSv4.2 (<span>[<a href="#RFC7862" class="cite xref">RFC7862</a>]</span>, Section 9).<a href="#section-9-4" class="pilcrow">¶</a></p>
-<p id="section-9-5">The concerns described above primarily apply to multi-user clients
-that cache directory-entry metadata on behalf of multiple users.
-Single-user clients may not be subject to these risks, but the
-attribute semantics remain the same regardless of client usage
-model.<a href="#section-9-5" class="pilcrow">¶</a></p>
-<p id="section-9-6">The uncacheable dirent metadata attribute allows servers to indicate
-that directory-entry metadata should not be assumed to be uniformly
-cacheable across observations.<a href="#section-9-6" class="pilcrow">¶</a></p>
+not define a new authorization model.<a href="#section-10-2" class="pilcrow">¶</a></p>
+<p id="section-10-3">If the client supports Labeled NFS (see <span>[<a href="#RFC7204" class="cite xref">RFC7204</a>]</span> for background),
+the client <span class="bcp14">MUST</span> locally enforce the MAC security policies defined by
+NFSv4.2 (<span>[<a href="#RFC7862" class="cite xref">RFC7862</a>]</span>, Section 9).  This obligation is independent of
+whether directory-entry metadata is cached or refetched.<a href="#section-10-3" class="pilcrow">¶</a></p>
+<p id="section-10-4">The uncacheable dirent metadata attribute allows servers to indicate
+that directory-entry metadata should not be assumed to remain valid
+beyond the READDIR that produced it.<a href="#section-10-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="iana-considerations">
-<section id="section-10">
+<section id="section-11">
       <h2 id="name-iana-considerations">
-<a href="#section-10" class="section-number selfRef">10. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
+<a href="#section-11" class="section-number selfRef">11. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
       </h2>
-<p id="section-10-1">This document has no IANA actions.  Numbered FATTR4 attributes for
+<p id="section-11-1">This document has no IANA actions.  Numbered FATTR4 attributes for
 NFSv4 are assigned by WG coordination through IETF publication
 rather than by an IANA registry, consistent with the assignment of
 attributes 81 and 82 in <span>[<a href="#RFC8275" class="cite xref">RFC8275</a>]</span> and <span>[<a href="#RFC8276" class="cite xref">RFC8276</a>]</span>.  Attribute
 number 88 was selected on the NFSv4 working group mailing list in
 conjunction with the assignment of number 87 in
-<span>[<a href="#I-D.ietf-nfsv4-uncacheable-files" class="cite xref">I-D.ietf-nfsv4-uncacheable-files</a>]</span>.<a href="#section-10-1" class="pilcrow">¶</a></p>
+<span>[<a href="#I-D.ietf-nfsv4-uncacheable-files" class="cite xref">I-D.ietf-nfsv4-uncacheable-files</a>]</span>.<a href="#section-11-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="sec-combined-references">
-<section id="section-11">
+<section id="section-12">
       <h2 id="name-references">
-<a href="#section-11" class="section-number selfRef">11. </a><a href="#name-references" class="section-name selfRef">References</a>
+<a href="#section-12" class="section-number selfRef">12. </a><a href="#name-references" class="section-name selfRef">References</a>
       </h2>
 <div id="sec-normative-references">
-<section id="section-11.1">
+<section id="section-12.1">
         <h3 id="name-normative-references">
-<a href="#section-11.1" class="section-number selfRef">11.1. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
+<a href="#section-12.1" class="section-number selfRef">12.1. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
         </h3>
 <dl class="references">
 <dt id="RFC2119">[RFC2119]</dt>
@@ -1744,14 +1757,14 @@ conjunction with the assignment of number 87 in
 </section>
 </div>
 <div id="sec-informative-references">
-<section id="section-11.2">
+<section id="section-12.2">
         <h3 id="name-informative-references">
-<a href="#section-11.2" class="section-number selfRef">11.2. </a><a href="#name-informative-references" class="section-name selfRef">Informative References</a>
+<a href="#section-12.2" class="section-number selfRef">12.2. </a><a href="#name-informative-references" class="section-name selfRef">Informative References</a>
         </h3>
 <dl class="references">
 <dt id="I-D.ietf-nfsv4-uncacheable-files">[I-D.ietf-nfsv4-uncacheable-files]</dt>
         <dd>
-<span class="refAuthor">Haynes, T.</span>, <span class="refTitle">"Adding an Uncacheable File Data Attribute to NFSv4.2"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-nfsv4-uncacheable-files-09</span>, <time datetime="2026-06-27" class="refDate">27 June 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-nfsv4-uncacheable-files-09">https://datatracker.ietf.org/doc/html/draft-ietf-nfsv4-uncacheable-files-09</a>&gt;</span>. </dd>
+<span class="refAuthor">Haynes, T.</span>, <span class="refTitle">"Adding an Uncacheable File Data Attribute to NFSv4.2"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-nfsv4-uncacheable-files-10</span>, <time datetime="2026-06-27" class="refDate">27 June 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-nfsv4-uncacheable-files-10">https://datatracker.ietf.org/doc/html/draft-ietf-nfsv4-uncacheable-files-10</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="MS-ABE">[MS-ABE]</dt>
         <dd>
@@ -1760,14 +1773,6 @@ conjunction with the assignment of number 87 in
 <dt id="MS-SMB2">[MS-SMB2]</dt>
         <dd>
 <span class="refAuthor">Microsoft Corporation</span>, <span class="refTitle">"Server Message Block (SMB) Protocol Versions 2 and 3"</span>, <span class="seriesInfo">Microsoft MS-SMB2</span>, <span>n.d.</span>, <span>&lt;<a href="https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-smb2/">https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-smb2/</a>&gt;</span>. </dd>
-<dd class="break"></dd>
-<dt id="POSIX.1">[POSIX.1]</dt>
-        <dd>
-<span class="refAuthor">IEEE</span>, <span class="refTitle">"The Open Group Base Specifications Issue 7"</span>, <span class="seriesInfo">IEEE Std 1003.1, 2013 Edition </span>, <time datetime="2013" class="refDate">2013</time>. </dd>
-<dd class="break"></dd>
-<dt id="RFC1813">[RFC1813]</dt>
-        <dd>
-<span class="refAuthor">Callaghan, B.</span>, <span class="refAuthor">Pawlowski, B.</span>, and <span class="refAuthor">P. Staubach</span>, <span class="refTitle">"NFS Version 3 Protocol Specification"</span>, <span class="seriesInfo">RFC 1813</span>, <span class="seriesInfo">DOI 10.17487/RFC1813</span>, <time datetime="1995-06" class="refDate">June 1995</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc1813">https://www.rfc-editor.org/rfc/rfc1813</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC7204">[RFC7204]</dt>
         <dd>
@@ -1778,12 +1783,8 @@ conjunction with the assignment of number 87 in
 <span class="refAuthor">Fields, J.</span> and <span class="refAuthor">A. Gruenbacher</span>, <span class="refTitle">"Allowing Inheritable NFSv4 Access Control Entries to Override the Umask"</span>, <span class="seriesInfo">RFC 8275</span>, <span class="seriesInfo">DOI 10.17487/RFC8275</span>, <time datetime="2017-12" class="refDate">December 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8275">https://www.rfc-editor.org/rfc/rfc8275</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC8276">[RFC8276]</dt>
-        <dd>
-<span class="refAuthor">Naik, M.</span> and <span class="refAuthor">M. Eshel</span>, <span class="refTitle">"File System Extended Attributes in NFSv4"</span>, <span class="seriesInfo">RFC 8276</span>, <span class="seriesInfo">DOI 10.17487/RFC8276</span>, <time datetime="2017-12" class="refDate">December 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8276">https://www.rfc-editor.org/rfc/rfc8276</a>&gt;</span>. </dd>
-<dd class="break"></dd>
-<dt id="Samba">[Samba]</dt>
       <dd>
-<span class="refAuthor">Samba Team</span>, <span class="refTitle">"Samba Project"</span>, <span>n.d.</span>, <span>&lt;<a href="https://www.samba.org/">https://www.samba.org/</a>&gt;</span>. </dd>
+<span class="refAuthor">Naik, M.</span> and <span class="refAuthor">M. Eshel</span>, <span class="refTitle">"File System Extended Attributes in NFSv4"</span>, <span class="seriesInfo">RFC 8276</span>, <span class="seriesInfo">DOI 10.17487/RFC8276</span>, <time datetime="2017-12" class="refDate">December 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8276">https://www.rfc-editor.org/rfc/rfc8276</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 </dl>
 </section>
@@ -1798,8 +1799,8 @@ conjunction with the assignment of number 87 in
 <p id="appendix-A-1">Trond Myklebust, Mike Snitzer, Jon Flynn, Keith Mannthey, and Thomas
 Haynes all worked on the prototype at Hammerspace.<a href="#appendix-A-1" class="pilcrow">¶</a></p>
 <p id="appendix-A-2">Rick Macklem, Chuck Lever, and Dave Noveck reviewed the document.<a href="#appendix-A-2" class="pilcrow">¶</a></p>
-<p id="appendix-A-3">Chris Inacio, Brian Pawlowski, and Gorry Fairhurst helped guide
-this process.<a href="#appendix-A-3" class="pilcrow">¶</a></p>
+<p id="appendix-A-3">Chris Inacio, Chuck Lever, Brian Pawlowski, and Gorry Fairhurst
+helped guide this process.<a href="#appendix-A-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="authors-addresses">
