@@ -164,14 +164,29 @@ the NFSv4.2 attribute defined here is not an NFS surface for ABE.
 
 dirent
 
-: A directory-entry representing a file or subdirectory and its
-associated attributes.
+: A directory entry returned by READDIR -- the (name, file handle)
+pair that names a file or subdirectory within a directory.  A dirent
+itself does not include the file attributes returned alongside it.
+
+dirent metadata
+
+: The file attributes (size, mtime, ctime, atime, mode, owner, etc.)
+returned in a READDIR response alongside each dirent.  These attributes
+belong to the underlying file object, not to the directory; they
+change when the underlying file is written, which is independent of
+the directory's change attribute.  The term "dirent metadata" in this
+document is a naming convenience for "the file attributes that arrive
+in a READDIR response"; it does not assert that those attributes
+inherit the directory's cache-coherence semantics.
 
 dirent caching
 
-: A client-side cache of directory-entry names and associated file
-object metadata, used to avoid repeated directory lookup and attribute
-retrieval.
+: A client-side cache of READDIR results -- the (name, file handle,
+file attributes) tuples -- used to avoid repeated READDIR and GETATTR
+traffic.  Because the file attributes in a cached READDIR response are
+not invalidated by the directory's change attribute (only by writes to
+the underlying files), this caching is inherently best-effort and
+subject to staleness whenever the underlying files are modified.
 
 uncacheable dirent metadata attribute
 
