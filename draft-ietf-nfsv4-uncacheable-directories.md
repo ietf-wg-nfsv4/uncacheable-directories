@@ -211,12 +211,6 @@ and error handling as defined in {{RFC8881}} and {{RFC7862}}.
 
 # Caching of Directory-Entry Metadata
 
-The fattr4_uncacheable_dirent_metadata attribute is a read-write boolean
-attribute that applies to directory objects and has a data type
-of boolean.  The attribute is not set on individual file objects
-and applies only to directory-entry metadata returned from the
-directory on which it is set.
-
 The uncacheable dirent metadata attribute enables servers to identify
 directories where the staleness of cached READDIR attributes is
 particularly likely and particularly damaging.  It is an OPTIONAL
