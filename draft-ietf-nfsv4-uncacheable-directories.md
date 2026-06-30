@@ -260,6 +260,34 @@ governs caching of directory-entry metadata returned by READDIR and
 related operations. The attributes are independent and may be used
 separately.
 
+This attribute follows the same pattern as
+fattr4_uncacheable_file_data ({{I-D.ietf-nfsv4-uncacheable-files}})
+applied at the file-data layer.  In both cases:
+
+* The underlying NFSv4.2 protocol permits client-side caching that
+  can become stale.
+
+* Client caching of the relevant data is widely implemented in
+  practice and reduces network traffic for stable objects.
+
+* For specific objects where the deployment knows the caching will
+  produce incorrect results, the server requires a mechanism to
+  instruct an honouring client to suppress the caching for those
+  specific objects.
+
+* The attribute does not redefine the legality of caching in the
+  general case.  It is a per-object server-side signal that the
+  caching is known to be unsuitable for that object.
+
+The attribute does NOT make READDIR-attr caching reliable for
+directories where it is not set.  Clients MUST NOT interpret the
+absence of fattr4_uncacheable_dirent_metadata, or its value being
+false, as a guarantee that cached READDIR attributes are
+authoritative.  As stated in {{RFC8881}} Section 10.3.2, all
+client-cached attributes are subject to staleness; the attribute
+defined in this document only identifies directories for which
+staleness is particularly likely and particularly damaging.
+
 This attribute does not define behavior for positive or negative name
 caching or for caching of LOOKUP results outside the scope of
 directory-entry metadata returned by READDIR and related operations.
