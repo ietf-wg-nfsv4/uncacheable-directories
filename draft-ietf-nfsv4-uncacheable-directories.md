@@ -32,19 +32,6 @@ informative:
   RFC7204:
   RFC8275:
   RFC8276:
-  MS-ABE:
-    title: Access-Based Enumeration (ABE) Concepts
-    author:
-      org: Microsoft
-    target: https://techcommunity.microsoft.com/blog/askds/access-based-enumeration-abe-concepts-part-1-of-2/400435
-    date: May 2009
-  MS-SMB2:
-    title: Server Message Block (SMB) Protocol Versions 2 and 3
-    author:
-      org: Microsoft Corporation
-    seriesinfo:
-      Microsoft: MS-SMB2
-    target: https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-smb2/
 --- abstract
 
 Network File System version 4.2 (NFSv4.2) clients may cache the
@@ -114,16 +101,16 @@ representation (XDR) {{RFC4506}} generated from {{RFC7863}}.
 
 # Deployment Motivation {#deployment-motivation}
 
-A class of deployment exposes a single file namespace concurrently
-through multiple file-access protocols, typically including
-NFSv4.2, NFSv3, and the Server Message Block (SMB) protocol family
-{{MS-SMB2}}.  The same directories are reachable from all of those
-protocols and, in many such deployments, from server-side policy
-components (placement, replication, archival, tiering) that act on
-the namespace without a client connection.  Changes to a directory's
-contents -- entries added, entries removed, entries whose attributes
-have been updated -- may therefore originate at any time from any
-of those sources.
+A class of deployment uses NFSv4.2 to serve a shared directory to
+many concurrent NFSv4.2 client writers, each writing files within
+the directory.  Workloads of this kind are typical of
+High-Performance Computing (HPC) environments, where a single
+output directory may receive results from hundreds or thousands of
+compute nodes simultaneously, and of large-scale data-ingest
+pipelines where many producers append to a common landing
+directory.  The files within such a directory have their attributes
+-- size and timestamps in particular -- modified at a high rate by
+clients other than the one performing READDIR.
 
 NFSv4.2 client implementations typically cache READDIR responses for
 a period bounded by either the directory's change attribute or a
@@ -144,31 +131,7 @@ the attribute on a directory, an honoring client retrieves
 directory-entry metadata from the server on each READDIR rather
 than from a local cache.
 
-In the deployments that motivate this work, no attribute values
-returned for a given dirent vary across users.  The server returns
-the same set of entries with the same attribute values to all NFSv4
-clients of a given directory regardless of the requesting user's
-identity.
-
-The SMB protocol family includes a related concept called
-Access-Based Enumeration (ABE) {{MS-ABE}} {{MS-SMB2}}, in which an
-SMB server filters the visible set of directory entries by the
-requesting user's access rights.  ABE is named here as background
-for readers familiar with the SMB ecosystem.  The NFSv4.2 attribute
-defined in this document is not an NFS surface for ABE: it does not
-require, specify, or depend on per-user directory filtering, and
-the servers that motivate this work do not apply such filtering to
-NFSv4.2 READDIR responses.
-
 # Definitions
-
-Access Based Enumeration (ABE)
-
-: A Server Message Block (SMB) {{MS-SMB2}} feature in which the
-server filters the visible set of directory entries by the
-requesting user's access rights {{MS-ABE}}.  Used in this document
-only as background for readers familiar with the SMB ecosystem;
-the NFSv4.2 attribute defined here is not an NFS surface for ABE.
 
 dirent
 
