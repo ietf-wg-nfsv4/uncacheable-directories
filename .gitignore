@@ -22,3 +22,5 @@ report.xml
 !requirements.txt
 /lib
 draft-ietf-nfsv4-uncacheable-directories.xml
+slides/.*.build.md
+slides/*.pptx
