@@ -117,6 +117,26 @@ The -08 accommodations settle the text-level concerns.  What remains is a **WG-l
 
 ---
 
+<!-- Slide role: CONTENT
+     Must-deliver:
+     -08 addresses the WGLC comments (slide 3).  The chair's call to
+     make.  Authors' preference: a confirming call to the list
+     (silence = consensus).  A focused re-review of the -07 -> -08
+     delta is a fine fallback if anyone wants one more pass.  Full
+     new WGLC would be heavier than the delta warrants.  Aim is WGLC
+     re-closes this cycle so publication can be requested. -->
+# What we're asking for procedurally
+
+**WGLC comments addressed in -08** (see slide 3).
+
+- **Preferred:** confirming call to the list &mdash; silence = consensus on the -08 changes
+- **Fallback:** focused re-review of the -07 &rarr; -08 delta
+- **Aim:** WGLC re-closes this cycle &rarr; publication request
+
+Chair's call &mdash; flagging preference, not dictating.
+
+---
+
 <!-- Slide role: SEPARATOR (Backups) -->
 <!-- _class: big -->
 # Backups
