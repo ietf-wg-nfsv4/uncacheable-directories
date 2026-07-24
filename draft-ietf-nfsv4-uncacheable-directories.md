@@ -78,17 +78,12 @@ metadata, including names and associated file object metadata such
 as size and timestamps.  It does not prohibit caching of the
 directory object itself, nor does it affect caching of file data.
 
-Client implementations may cache the file attributes returned by
-READDIR alongside the dirents themselves.  This caching is
-inherently best-effort: the file attributes can change at any time
-as a result of writes to the underlying files, which the directory's
-change attribute does not track.  When this caching returns stale
-size and timestamp information for files that have been modified
-concurrently, it also undermines the effectiveness of uncacheable
-file data semantics ({{I-D.ietf-nfsv4-uncacheable-files}}) in the
-same deployment.  This can lead to applications observing
-inconsistent metadata and data views even when file data caching
-is disabled.
+When this best-effort caching returns stale size and timestamp
+information for concurrently modified files, it also undermines the
+effectiveness of uncacheable file data semantics
+({{I-D.ietf-nfsv4-uncacheable-files}}) in the same deployment:
+applications can observe inconsistent metadata and data views even
+when file data caching is disabled.
 
 This document introduces the uncacheable dirent metadata attribute
 to NFSv4.2 to allow servers to advise clients that caching of
@@ -277,6 +272,15 @@ The fattr4_uncacheable_dirent_metadata attribute is a read-write boolean
 attribute that applies to directory objects.
 Authorization to query or modify this attribute is governed by
 existing NFSv4.2 authorization mechanisms.
+
+Because the attribute applies only to directory objects, a server MUST
+return NFS4ERR_INVAL in response to a GETATTR or SETATTR that requests
+fattr4_uncacheable_dirent_metadata on an object that is not a directory.
+
+This attribute is set per directory.  This document does not define
+propagation of the attribute to subdirectories created within a
+directory on which it is set; any such inheritance is a matter of
+local server policy.
 
 If a directory object has the uncacheable dirent metadata attribute
 set, the client MUST retrieve directory-entry metadata from the
@@ -508,6 +512,15 @@ Servers MAY restrict modification of this attribute based on local
 policy, file ownership, or access control rules.  This document does
 not define a new authorization model.
 
+Because the attribute is visible to and affects the caching behavior
+of all honoring clients, servers should consider the implications of
+allowing unprivileged users to set or clear it.  Setting the attribute
+on a directory forces honoring clients to abandon READDIR caching and
+refetch directory-entry metadata on every enumeration, which can
+increase load on the server and on other clients.  A server MAY
+restrict modification of the attribute based on administrative
+configuration, export policy, or ownership.
+
 If the client supports Labeled NFS (see {{RFC7204}} for background),
 the client MUST locally enforce the MAC security policies defined by
 NFSv4.2 ({{RFC7862}}, Section 9).  This obligation is independent of
@@ -529,7 +542,8 @@ This document has no IANA actions.
 Trond Myklebust, Mike Snitzer, Jon Flynn, Keith Mannthey, and Thomas
 Haynes all worked on the prototype at Hammerspace.
 
-Rick Macklem, Chuck Lever, and Dave Noveck reviewed the document.
+Rick Macklem, Chuck Lever, Dave Noveck, and Sorin Faibish reviewed
+the document.
 
 Chris Inacio, Chuck Lever, Brian Pawlowski, and Gorry Fairhurst
 helped guide this process.
