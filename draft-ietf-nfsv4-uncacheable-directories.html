@@ -1059,7 +1059,7 @@ svg {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Haynes</td>
-<td class="center">Expires 21 January 2027</td>
+<td class="center">Expires 25 January 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1072,12 +1072,12 @@ svg {
 <dd class="internet-draft">draft-ietf-nfsv4-uncacheable-directories-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-07-20" class="published">20 July 2026</time>
+<time datetime="2026-07-24" class="published">24 July 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-01-21">21 January 2027</time></dd>
+<dd class="expires"><time datetime="2027-01-25">25 January 2027</time></dd>
 <dt class="label-authors">Author:</dt>
 <dd class="authors">
 <div class="author">
@@ -1135,7 +1135,7 @@ code and issues list for this draft can be found at
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 21 January 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 25 January 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1253,17 +1253,12 @@ dirent metadata attribute applies to the caching of directory-entry
 metadata, including names and associated file object metadata such
 as size and timestamps.  It does not prohibit caching of the
 directory object itself, nor does it affect caching of file data.<a href="#section-1-2" class="pilcrow">¶</a></p>
-<p id="section-1-3">Client implementations may cache the file attributes returned by
-READDIR alongside the dirents themselves.  This caching is
-inherently best-effort: the file attributes can change at any time
-as a result of writes to the underlying files, which the directory's
-change attribute does not track.  When this caching returns stale
-size and timestamp information for files that have been modified
-concurrently, it also undermines the effectiveness of uncacheable
-file data semantics (<span>[<a href="#I-D.ietf-nfsv4-uncacheable-files" class="cite xref">I-D.ietf-nfsv4-uncacheable-files</a>]</span>) in the
-same deployment.  This can lead to applications observing
-inconsistent metadata and data views even when file data caching
-is disabled.<a href="#section-1-3" class="pilcrow">¶</a></p>
+<p id="section-1-3">When this best-effort caching returns stale size and timestamp
+information for concurrently modified files, it also undermines the
+effectiveness of uncacheable file data semantics
+(<span>[<a href="#I-D.ietf-nfsv4-uncacheable-files" class="cite xref">I-D.ietf-nfsv4-uncacheable-files</a>]</span>) in the same deployment:
+applications can observe inconsistent metadata and data views even
+when file data caching is disabled.<a href="#section-1-3" class="pilcrow">¶</a></p>
 <p id="section-1-4">This document introduces the uncacheable dirent metadata attribute
 to NFSv4.2 to allow servers to advise clients that caching of
 directory-entry metadata is unsuitable.  Using the process detailed
@@ -1476,22 +1471,29 @@ the READDIR that produced it.<a href="#section-5-14" class="pilcrow">¶</a></p>
 attribute that applies to directory objects.
 Authorization to query or modify this attribute is governed by
 existing NFSv4.2 authorization mechanisms.<a href="#section-5.1-1" class="pilcrow">¶</a></p>
-<p id="section-5.1-2">If a directory object has the uncacheable dirent metadata attribute
+<p id="section-5.1-2">Because the attribute applies only to directory objects, a server <span class="bcp14">MUST</span>
+return NFS4ERR_INVAL in response to a GETATTR or SETATTR that requests
+fattr4_uncacheable_dirent_metadata on an object that is not a directory.<a href="#section-5.1-2" class="pilcrow">¶</a></p>
+<p id="section-5.1-3">This attribute is set per directory.  This document does not define
+propagation of the attribute to subdirectories created within a
+directory on which it is set; any such inheritance is a matter of
+local server policy.<a href="#section-5.1-3" class="pilcrow">¶</a></p>
+<p id="section-5.1-4">If a directory object has the uncacheable dirent metadata attribute
 set, the client <span class="bcp14">MUST</span> retrieve directory-entry metadata from the
 server on each READDIR rather than serving the response from a
 local cache.  This ensures that the returned metadata reflects
-the current state of the directory as determined by the server.<a href="#section-5.1-2" class="pilcrow">¶</a></p>
-<p id="section-5.1-3">The uncacheable dirent metadata attribute does not modify the
+the current state of the directory as determined by the server.<a href="#section-5.1-4" class="pilcrow">¶</a></p>
+<p id="section-5.1-5">The uncacheable dirent metadata attribute does not modify the
 semantics of the NFSv4.2 change attribute.  Clients <span class="bcp14">MUST</span> continue to
 use the change attribute to detect directory modifications and to
 determine when directory contents may have changed, even when
 directory-entry metadata caching is suppressed.  Suppressing caching
 of directory-entry metadata does not remove the need for change-based
-validation.<a href="#section-5.1-3" class="pilcrow">¶</a></p>
-<p id="section-5.1-4">Servers <span class="bcp14">SHOULD</span> assume that clients which do not query or set this
+validation.<a href="#section-5.1-5" class="pilcrow">¶</a></p>
+<p id="section-5.1-6">Servers <span class="bcp14">SHOULD</span> assume that clients which do not query or set this
 attribute may cache directory-entry metadata, and therefore <span class="bcp14">SHOULD NOT</span> rely on this attribute for correctness unless client support
-is confirmed.<a href="#section-5.1-4" class="pilcrow">¶</a></p>
-<p id="section-5.1-5">A directory delegation grants a client the right to cache
+is confirmed.<a href="#section-5.1-6" class="pilcrow">¶</a></p>
+<p id="section-5.1-7">A directory delegation grants a client the right to cache
 directory-entry metadata until the server recalls the delegation.
 The always-refetch rule of this attribute is incompatible with that
 grant.  If a directory has both the uncacheable dirent metadata
@@ -1499,7 +1501,7 @@ attribute set and an outstanding directory delegation, the server
 <span class="bcp14">MUST</span> recall the delegation, after which the client follows the
 always-refetch rule on each subsequent READDIR.  A server <span class="bcp14">MUST NOT</span>
 grant a new directory delegation on a directory while the
-uncacheable dirent metadata attribute is set on that directory.<a href="#section-5.1-5" class="pilcrow">¶</a></p>
+uncacheable dirent metadata attribute is set on that directory.<a href="#section-5.1-7" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -1739,13 +1741,21 @@ attribute is governed by existing NFSv4.2 authorization mechanisms.
 Servers <span class="bcp14">MAY</span> restrict modification of this attribute based on local
 policy, file ownership, or access control rules.  This document does
 not define a new authorization model.<a href="#section-10-2" class="pilcrow">¶</a></p>
-<p id="section-10-3">If the client supports Labeled NFS (see <span>[<a href="#RFC7204" class="cite xref">RFC7204</a>]</span> for background),
+<p id="section-10-3">Because the attribute is visible to and affects the caching behavior
+of all honoring clients, servers should consider the implications of
+allowing unprivileged users to set or clear it.  Setting the attribute
+on a directory forces honoring clients to abandon READDIR caching and
+refetch directory-entry metadata on every enumeration, which can
+increase load on the server and on other clients.  A server <span class="bcp14">MAY</span>
+restrict modification of the attribute based on administrative
+configuration, export policy, or ownership.<a href="#section-10-3" class="pilcrow">¶</a></p>
+<p id="section-10-4">If the client supports Labeled NFS (see <span>[<a href="#RFC7204" class="cite xref">RFC7204</a>]</span> for background),
 the client <span class="bcp14">MUST</span> locally enforce the MAC security policies defined by
 NFSv4.2 (<span>[<a href="#RFC7862" class="cite xref">RFC7862</a>]</span>, Section 9).  This obligation is independent of
-whether directory-entry metadata is cached or refetched.<a href="#section-10-3" class="pilcrow">¶</a></p>
-<p id="section-10-4">The uncacheable dirent metadata attribute allows servers to indicate
+whether directory-entry metadata is cached or refetched.<a href="#section-10-4" class="pilcrow">¶</a></p>
+<p id="section-10-5">The uncacheable dirent metadata attribute allows servers to indicate
 that directory-entry metadata should not be assumed to remain valid
-beyond the READDIR that produced it.<a href="#section-10-4" class="pilcrow">¶</a></p>
+beyond the READDIR that produced it.<a href="#section-10-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="iana-considerations">
@@ -1824,7 +1834,8 @@ beyond the READDIR that produced it.<a href="#section-10-4" class="pilcrow">¶</
       </h2>
 <p id="appendix-A-1">Trond Myklebust, Mike Snitzer, Jon Flynn, Keith Mannthey, and Thomas
 Haynes all worked on the prototype at Hammerspace.<a href="#appendix-A-1" class="pilcrow">¶</a></p>
-<p id="appendix-A-2">Rick Macklem, Chuck Lever, and Dave Noveck reviewed the document.<a href="#appendix-A-2" class="pilcrow">¶</a></p>
+<p id="appendix-A-2">Rick Macklem, Chuck Lever, Dave Noveck, and Sorin Faibish reviewed
+the document.<a href="#appendix-A-2" class="pilcrow">¶</a></p>
 <p id="appendix-A-3">Chris Inacio, Chuck Lever, Brian Pawlowski, and Gorry Fairhurst
 helped guide this process.<a href="#appendix-A-3" class="pilcrow">¶</a></p>
 </section>
