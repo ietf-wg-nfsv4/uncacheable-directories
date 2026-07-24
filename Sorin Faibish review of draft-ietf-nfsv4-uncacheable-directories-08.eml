@@ -1,0 +1,323 @@
+Return-Path: <sfaibish@comcast.net>
+X-Original-To: nfsv4@mail2.ietf.org
+Delivered-To: nfsv4@mail2.ietf.org
+Received: from localhost (localhost [127.0.0.1])
+	by mail2.ietf.org (Postfix) with ESMTP id C292411D7CDF9
+	for <nfsv4@mail2.ietf.org>; Thu, 23 Jul 2026 07:20:10 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=ietf.org; s=ietf1;
+	t=1784816410; bh=T6qYzVVDUR9u6nqgTUbOPyEBfkKT+15l3teztwv4T6o=;
+	h=Date:From:To:Subject;
+	b=Z4TIbA2KOOk/W9FM/BbD6jn9G1XIEFfJHIa4iO4uG5c0RdBaA7B2U7xwysRrNO6Q3
+	 r0S22iGk5pYBhpPhN4BSATWyIJWx+V2Lgc8yl0pdUgSFuG6x1cZttT9E1p9Keer1v3
+	 EbR7LPwj214NG/nvDF78qL0Hhqf2iXWGtrvaf7Ko=
+X-Virus-Scanned: amavisd-new at ietf.org
+X-Spam-Flag: NO
+X-Spam-Score: -1.098
+X-Spam-Level: 
+X-Spam-Status: No, score=-1.098 tagged_above=-999 required=5
+	tests=[BAYES_00=-1.9, DKIM_SIGNED=0.1, DKIM_VALID=-0.1,
+	DKIM_VALID_AU=-0.1, DKIM_VALID_EF=-0.1, FREEMAIL_FROM=0.001,
+	HTML_MESSAGE=0.001, RAND_HEADER_MANY=1, SPF_HELO_NONE=0.001,
+	SPF_PASS=-0.001] autolearn=no autolearn_force=no
+Authentication-Results: mail2.ietf.org (amavisd-new); dkim=pass (2048-bit key)
+	header.d=comcast.net
+Received: from mail2.ietf.org ([166.84.6.31])
+	by localhost (mail2.ietf.org [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id zd2FXW1Lzn3x for <nfsv4@mail2.ietf.org>;
+	Thu, 23 Jul 2026 07:20:10 -0700 (PDT)
+Received: from resqmta-h2p-567039.sys.comcast.net
+ (resqmta-h2p-567039.sys.comcast.net [IPv6:2001:558:fd02:2446::9])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature ECDSA (P-256) server-digest SHA256)
+	(No client certificate requested)
+	by mail2.ietf.org (Postfix) with ESMTPS id 9B08311D7B17D
+	for <nfsv4@ietf.org>; Thu, 23 Jul 2026 07:13:35 -0700 (PDT)
+Received: from resomta-h2p-555031.sys.comcast.net ([96.102.179.206])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 256/256 bits)
+	(Client did not present a certificate)
+	by resqmta-h2p-567039.sys.comcast.net with ESMTPS
+	id mtj0whzJdcU6pmuAywsMuu; Thu, 23 Jul 2026 14:13:28 +0000
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=comcast.net;
+	s=20190202a; t=1784816008;
+	bh=lgULVoHrX3o8dyiJdOdBxbD/YJ+auZkh7/td8KLhMto=;
+	h=Received:Received:Date:From:To:Message-ID:Subject:MIME-Version:
+	 Content-Type:Xfinity-Spam-Result;
+	b=TsTLGcnV72fwTnTw0DdXAdZGLOIfd29qgjg6nK3OUrYRFvc7QlUrFuixQTrwJrbG/
+	 27AHHf92w+aTSPhBx8IkU+6a+9tNfT9Fr9denvpsTE0SmNmjjB/XiH4TogPn2jkYYs
+	 dCq0NJ3JkuJakPtoIiI9ew95/VPOTgETL8oRxJj3+b/f2IOvGP6qqy/rzlVbwNok5P
+	 3mCOn3VoBR6xAykIs+8sD01aaEnqcBq0M/10ONoXt+MCuJ8HtDFo63m02hi0T7H8PR
+	 CPQ2YRlCdq8rfFRVzoZPr9kAHKj1SZIokdr1BKY1p6+mXx0pGtH39z/5U8SjLlU2/Q
+	 vRr6pexm9edbQ==
+Received: from oxapp-asc-46o.email.comcast.net ([96.118.220.60])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 256/256 bits)
+	(Client did not present a certificate)
+	by resomta-h2p-555031.sys.comcast.net with ESMTPS
+	id muAwwqmqTvEsXmuAxwITCM; Thu, 23 Jul 2026 14:13:27 +0000
+Xfinity-QID: muAwwqmqTvEsXmuAywITCT
+Xfinity-Graffiti: 53402710747
+Xfinity-Graffiti: 52800560781
+Date: Thu, 23 Jul 2026 10:13:26 -0400 (EDT)
+From: Sorin Faibish <sfaibish@comcast.net>
+To: "nfsv4@ietf.org" <nfsv4@ietf.org>, Sorin Faibish <sfaibish@comcast.net>
+Message-ID: <1369671641.87585.1784816006529@connect.xfinity.com>
+MIME-Version: 1.0
+Content-Type: multipart/alternative;
+	boundary="----=_Part_87584_209463456.1784816006517"
+X-Priority: 3
+Importance: Normal
+X-Mailer: Open-Xchange Mailer v7.10.6-Rev83
+X-Originating-IP: 2601:197:f80:4a20:6809:daa2:29e8:689c
+X-Originating-Port: 6132
+X-Originating-Client: open-xchange-appsuite
+X-CMAE-Envelope: 
+ MS4xfMUooQvsNlFxHl4bnsl55jsk482UaKXXzqccELqHkWaM6sgrf1N7j0Bs1FyPKazDr5Qlz/6KEh3OuOC1sUzb1flvFoMP7MlY6YO0QnZQ09iyqyz7gjf+
+ hzPMKIvkGZUvNiW5xVvR0wOA9lOGyFtNh3vfSQGT2lpUkN51Ef3QAqye2ET4vV3wFKrFFG1PTRvz+/hAAug2bz0H6VToVjJBmGuEEF3vfjkasGpzhRtoQW8F
+ I7aRs2HllGD6rTkYax8sKA==
+Message-ID-Hash: 7O6T57ZTDQGV2W5XVEECXVM6ZPRM3Q3V
+X-Message-ID-Hash: 7O6T57ZTDQGV2W5XVEECXVM6ZPRM3Q3V
+X-MailFrom: sfaibish@comcast.net
+X-Mailman-Rule-Misses: dmarc-mitigation; no-senders; approved; emergency;
+ loop; banned-address; member-moderation; header-match-nfsv4.ietf.org-0;
+ nonmember-moderation; administrivia; implicit-dest; max-recipients; max-size;
+ news-moderation; no-subject; digests; suspicious-header
+X-Mailman-Version: 3.3.9rc6
+Precedence: list
+Subject: =?utf-8?q?=5Bnfsv4=5D_My_review_notes_of_draft-ietf-nfsv4-uncacheable-direct?=
+	=?utf-8?q?ories-08?=
+List-Id: NFSv4 Working Group <nfsv4.ietf.org>
+Archived-At: 
+ <https://mailarchive.ietf.org/arch/msg/nfsv4/wymJlYPav1JfoTbjliRyJW4ytMc>
+List-Archive: <https://mailarchive.ietf.org/arch/browse/nfsv4>
+List-Help: <mailto:nfsv4-request@ietf.org?subject=help>
+List-Owner: <mailto:nfsv4-owner@ietf.org>
+List-Post: <mailto:nfsv4@ietf.org>
+List-Subscribe: <mailto:nfsv4-join@ietf.org>
+List-Unsubscribe: <mailto:nfsv4-leave@ietf.org>
+
+------=_Part_87584_209463456.1784816006517
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+These are the changes I recommend:
+=20
+1. Non-directory error =E2=80=94 Page 7, =C2=A75.1 (should fix)
+    Insert as a new sentence right after the first paragraph of =C2=A75.1 (=
+after line 326, "=E2=80=A6authorization mechanisms."):
+New:
+Because the attribute applies only to directory objects, a server MUST retu=
+rn NFS4ERR_INVAL in response to a GETATTR or SETATTR that requests fattr4_u=
+ncacheable_dirent_metadata on an object that is not a directory.
+=20
+2. Inheritance statement =E2=80=94 Page 7, =C2=A75.1 (minor)
+    Insert immediately after the sentence added in #2:
+New:
+This attribute is set per directory. This document does not define propagat=
+ion of the attribute to subdirectories created within a directory on which =
+it is set; any such inheritance is a matter of local server policy.
+=20
+3. Security write-side / DoS note =E2=80=94 Page 12, =C2=A710 (should fix)
+    Insert as a new paragraph after the authorization paragraph (after line=
+ 565, "=E2=80=A6does not define a new authorization model."):
+New:
+Because the attribute is visible to and affects the caching behavior of all=
+ honoring clients, servers should consider the implications of allowing unp=
+rivileged users to set or clear it. Setting the attribute on a directory fo=
+rces honoring clients to abandon READDIR caching and refetch directory-entr=
+y metadata on every enumeration, which can increase load on the server and =
+on other clients. A server MAY restrict modification of the attribute based=
+ on administrative configuration, export policy, or ownership.
+=20
+4. Trim repetition =E2=80=94 Page 3, =C2=A71 (editorial)
+    The best-effort/change-attribute point appears in the Abstract, =C2=A71=
+ para 1 (101=E2=80=93108), =C2=A71 para 3 (117=E2=80=93126), =C2=A72 (151=
+=E2=80=93161), and =C2=A73 (177=E2=80=93193).        Simplest fix: replace =
+=C2=A71 paragraph 3 (lines 117=E2=80=93126), which is the most redundant, k=
+eeping only its unique cross-reference.
+=20
+Replace (lines 117=E2=80=93126):
+"Client implementations may cache the file attributes returned by READDIR a=
+longside the dirents themselves. This caching is inherently best-effort: th=
+e file attributes can change at any time as a result of writes to the under=
+lying files, which the directory's change attribute does not track. When th=
+is caching returns stale size and timestamp information for files that have=
+ been modified concurrently, it also undermines the effectiveness of uncach=
+eable file data semantics ([I-D.ietf-nfsv4-uncacheable-files]) in the same =
+deployment. This can lead to applications observing inconsistent metadata a=
+nd data views even when file data caching is disabled."
+=20
+With:
+"When this best-effort caching returns stale size and timestamp information=
+ for concurrently modified files, it also undermines the effectiveness of u=
+ncacheable file data semantics ([I-D.ietf-nfsv4-uncacheable-files]) in the =
+same deployment: applications can observe inconsistent metadata and data vi=
+ews even when file data caching is disabled."
+=20
+I hope this helps. I used Claude for the review.
+=20
+Sorin Faibish
+email: sfaibish@comcast.net mailto:sfaibish@comcast.net
+mobile: (617) 510-0422
+------=_Part_87584_209463456.1784816006517
+MIME-Version: 1.0
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+<!doctype html>
+<html>
+ <head>=20
+  <meta charset=3D"UTF-8">=20
+ </head>
+ <body>
+  <div class=3D"default-style" style=3D"font-size: 12pt; font-family: helve=
+tica,arial,sans-serif; color: #333333;">
+   <span style=3D"font-family: helvetica; font-size: 12pt;">These are the c=
+hanges I recommend:</span>
+  </div>=20
+  <div class=3D"default-style" style=3D"font-size: 12pt; font-family: helve=
+tica,arial,sans-serif; color: #333333;">
+   &nbsp;
+  </div>=20
+  <div class=3D"default-style" style=3D"font-size: 12pt; font-family: helve=
+tica,arial,sans-serif; color: #333333;">
+   <span style=3D"font-size: 12pt;">1. Non-directory error =E2=80=94 Page 7=
+, =C2=A75.1<span style=3D"color: #ff0000;"><strong> (should fix)</strong></=
+span></span>
+  </div>=20
+  <div class=3D"default-style" style=3D"font-size: 12pt; font-family: helve=
+tica,arial,sans-serif; color: #333333;">=20
+   <div>
+    &nbsp; &nbsp; Insert as a new sentence right after the first paragraph =
+of =C2=A75.1 (after line 326, "=E2=80=A6authorization mechanisms."):
+   </div>=20
+   <div>
+    New:
+   </div>=20
+   <div class=3D"default-style" style=3D"font-size: 12pt; font-family: helv=
+etica, arial, sans-serif; color: #333333;">
+    <span style=3D"font-size: 12pt;">Because the attribute applies only to =
+directory objects, a server MUST return NFS4ERR_INVAL in response to a GETA=
+TTR or SETATTR that requests fattr4_uncacheable_dirent_metadata on an objec=
+t that is not a directory.</span>
+   </div>=20
+   <div>
+    &nbsp;
+   </div>=20
+   <div class=3D"default-style" style=3D"font-size: 12pt; font-family: helv=
+etica, arial, sans-serif; color: #333333;">
+    2. <span style=3D"font-size: 12pt;">Inheritance statement =E2=80=94 Pag=
+e 7, =C2=A75.1 (minor)</span>=20
+    <div class=3D"default-style">
+     &nbsp; &nbsp; Insert immediately after the sentence added in #2:
+     <br>New:
+    </div>=20
+    <div class=3D"default-style">
+     This attribute is set per directory. This document does not define pro=
+pagation of the attribute to subdirectories created within a directory on w=
+hich it is set; any such inheritance is a matter of local server policy.
+    </div>=20
+    <div class=3D"default-style" style=3D"font-size: 12pt; font-family: hel=
+vetica, arial, sans-serif; color: #333333;">
+     &nbsp;
+    </div>=20
+    <div class=3D"default-style" style=3D"font-size: 12pt; font-family: hel=
+vetica, arial, sans-serif; color: #333333;">
+     3. <span style=3D"font-size: 12pt;">Security write-side / DoS note =E2=
+=80=94 Page 12, =C2=A710 <span style=3D"color: #ff0000;"><strong>(should fi=
+x)</strong></span></span>=20
+     <div class=3D"default-style">
+      &nbsp; &nbsp; Insert as a new paragraph after the authorization parag=
+raph (after line 565, "=E2=80=A6does not define a new authorization model."=
+):
+      <br>New:
+     </div>=20
+     <div class=3D"default-style">
+      Because the attribute is visible to and affects the caching behavior =
+of all honoring clients, servers should consider the implications of allowi=
+ng unprivileged users to set or clear it. Setting the attribute on a direct=
+ory forces honoring clients to abandon READDIR caching and refetch director=
+y-entry metadata on every enumeration, which can increase load on the serve=
+r and on other clients. A server MAY restrict modification of the attribute=
+ based on administrative configuration, export policy, or ownership.
+     </div>=20
+     <div class=3D"default-style" style=3D"font-size: 12pt; font-family: he=
+lvetica, arial, sans-serif; color: #333333;">
+      &nbsp;
+     </div>=20
+     <div class=3D"default-style" style=3D"font-size: 12pt; font-family: he=
+lvetica, arial, sans-serif; color: #333333;">
+      4. <span style=3D"font-size: 12pt;">Trim repetition =E2=80=94 Page 3,=
+ =C2=A71 (editorial)</span>=20
+      <div class=3D"default-style">
+       &nbsp; &nbsp; The best-effort/change-attribute point appears in the =
+Abstract, =C2=A71 para 1 (101=E2=80=93108), =C2=A71 para 3 (117=E2=80=93126=
+), =C2=A72 (151=E2=80=93161), and =C2=A73 (177=E2=80=93193).&nbsp; &nbsp; &=
+nbsp; &nbsp; Simplest fix: replace =C2=A71 paragraph 3 (lines 117=E2=80=931=
+26), which is the most redundant, keeping only its unique cross-reference.
+      </div>=20
+      <div class=3D"default-style" style=3D"font-size: 12pt; font-family: h=
+elvetica, arial, sans-serif; color: #333333;">
+       &nbsp;
+      </div>=20
+      <div class=3D"default-style" style=3D"font-size: 12pt; font-family: h=
+elvetica, arial, sans-serif; color: #333333;">
+       Replace (lines 117=E2=80=93126):
+      </div>=20
+      <div class=3D"default-style">
+       "Client implementations may cache the file attributes returned by RE=
+ADDIR alongside the dirents themselves. This caching is inherently best-eff=
+ort: the file attributes can change at any time as a result of writes to th=
+e underlying files, which the directory's change attribute does not track. =
+When this caching returns stale size and timestamp information for files th=
+at have been modified concurrently, it also undermines the effectiveness of=
+ uncacheable file data semantics ([I-D.ietf-nfsv4-uncacheable-files]) in th=
+e same deployment. This can lead to applications observing inconsistent met=
+adata and data views even when file data caching is disabled."
+      </div>=20
+      <div class=3D"default-style" style=3D"font-size: 12pt; font-family: h=
+elvetica, arial, sans-serif; color: #333333;">
+       &nbsp;
+      </div>=20
+      <div class=3D"default-style">
+       With:
+      </div>=20
+      <div class=3D"default-style">
+       "When this best-effort caching returns stale size and timestamp info=
+rmation for concurrently modified files, it also undermines the effectivene=
+ss of uncacheable file data semantics ([I-D.ietf-nfsv4-uncacheable-files]) =
+in the same deployment: applications can observe inconsistent metadata and =
+data views even when file data caching is disabled."
+      </div>=20
+      <div class=3D"default-style" style=3D"font-size: 12pt; font-family: h=
+elvetica, arial, sans-serif; color: #333333;">
+       &nbsp;
+      </div>=20
+      <div class=3D"default-style" style=3D"font-size: 12pt; font-family: h=
+elvetica, arial, sans-serif; color: #333333;">
+       I hope this helps. I used Claude for the review.
+      </div>=20
+      <div class=3D"default-style" style=3D"font-size: 12pt; font-family: h=
+elvetica, arial, sans-serif; color: #333333;">
+       &nbsp;
+      </div>=20
+      <div class=3D"default-style" style=3D"font-size: 12pt; font-family: h=
+elvetica, arial, sans-serif; color: #333333;">
+       Sorin Faibish
+      </div>=20
+      <div class=3D"default-style" style=3D"font-size: 12pt; font-family: h=
+elvetica, arial, sans-serif; color: #333333;">
+       email: <a href=3D"mailto:sfaibish@comcast.net">sfaibish@comcast.net<=
+/a>
+      </div>=20
+      <div class=3D"default-style" style=3D"font-size: 12pt; font-family: h=
+elvetica, arial, sans-serif; color: #333333;">
+       mobile: (617) 510-0422
+      </div>=20
+     </div>=20
+    </div>=20
+   </div>=20
+  </div>
+ </body>
+</html>
+------=_Part_87584_209463456.1784816006517--
+
