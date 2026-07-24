@@ -545,5 +545,5 @@ Haynes all worked on the prototype at Hammerspace.
 Rick Macklem, Chuck Lever, Dave Noveck, and Sorin Faibish reviewed
 the document.
 
-Chris Inacio, Chuck Lever, Brian Pawlowski, Gorry Fairhurst,
-and Zahed Sarker helped guide this process.
+Chris Inacio, Brian Pawlowski, Chuck Lever, Zahed Sarker, and
+Gorry Fairhurst helped guide this process.
