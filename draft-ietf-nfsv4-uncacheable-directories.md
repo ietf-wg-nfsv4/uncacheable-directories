@@ -74,8 +74,8 @@ problem; the conditions are described in {{deployment-motivation}}.
 In this document, the term directory is used to describe the
 context in which directory entries are retrieved.  The uncacheable
 dirent metadata attribute applies to the caching of directory-entry
-metadata, including names and associated file object metadata such
-as size and timestamps.  It does not prohibit caching of the
+metadata -- the file object attributes, such as size and timestamps,
+returned alongside each entry.  It does not prohibit caching of the
 directory object itself, nor does it affect caching of file data.
 
 When this best-effort caching returns stale size and timestamp
@@ -105,17 +105,25 @@ directory.  The files within such a directory have their attributes
 -- size and timestamps in particular -- modified at a high rate by
 clients other than the one performing READDIR.
 
-NFSv4.2 client implementations typically cache READDIR responses for
-a period bounded by either the directory's change attribute or a
-heuristic timeout.  The cached file attributes returned by READDIR
-are NOT invalidated by the directory's change attribute -- they are
-only invalidated by writes to the underlying files, which the
-directory's change attribute does not track.  In deployments of the
-kind described above, the rate at which the underlying files are
-written by other clients can exceed what such caches can track, so
-that an NFSv4.2 client serving READDIR responses from its local cache
-will, with some regularity, return file attribute values that no
-longer reflect the current state of those files at the server.
+{{RFC8881}} Section 10.6 permits a client to cache the file attributes
+returned by READDIR on the same basis as attributes obtained by GETATTR:
+cached per file, bounded by an upper time boundary, and revalidated
+against that file's change attribute.  In a directory receiving writes
+from thousands of compute nodes, any nonzero cache lifetime yields stale
+size and time_modify for most entries most of the time, and revalidating
+each entry individually costs one GETATTR per entry -- the very traffic
+that requesting attributes in READDIR exists to avoid.  NFSv4.2 gives a
+server no in-band way to tell a client that the acceptable attribute
+cache lifetime for the children of a particular directory is zero; mount
+options express this out of band and per client, not per directory.
+
+The staleness has correctness consequences, not merely cosmetic ones.
+An incremental backup or an rsync scan that decides what to copy from
+the size and time_modify reported for each entry will silently skip a
+file whose cached metadata predates a concurrent write, leaving data
+uncopied.  This attribute lets a server mark the directories where that
+outcome is likely, so that an honoring client fetches current metadata
+on each enumeration.
 
 The fattr4_uncacheable_dirent_metadata attribute is the server's
 mechanism to identify a directory for which this risk is high
@@ -155,8 +163,16 @@ subject to staleness whenever the underlying files are modified.
 uncacheable dirent metadata attribute
 
 : An NFSv4.2 file attribute that advises clients not to cache
-  directory-entry metadata associated with file objects, including
-  names, size, and timestamps.
+  directory-entry metadata associated with file objects, such as
+  size and timestamps.
+
+honoring client
+
+: A client that implements this attribute and enforces the
+always-refetch behavior it defines for a directory on which the
+attribute is set.  The attribute is advisory: a client that does not
+implement it, or that declines to enforce it, is non-honoring and may
+continue to cache directory-entry metadata.
 
 This document assumes familiarity with NFSv4.2 operations, attributes,
 and error handling as defined in {{RFC8881}} and {{RFC7862}}.
@@ -169,8 +185,10 @@ and error handling as defined in {{RFC8881}} and {{RFC7862}}.
 
 The uncacheable dirent metadata attribute enables servers to identify
 directories where the staleness of cached READDIR attributes is
-particularly likely and particularly damaging.  It is an OPTIONAL
-attribute to implement for NFSv4.2.  If both the client and the
+particularly likely and particularly damaging.  It is a RECOMMENDED
+attribute for NFSv4.2, in the attribute-category sense of {{RFC8881}}
+Section 5.2 and {{RFC7862}} Section 12 rather than the BCP 14 sense; a
+server is not required to support it.  If both the client and the
 server support this attribute, and the attribute is set on a
 directory, the client MUST retrieve directory-entry metadata from
 the server on each READDIR rather than serving the response from
@@ -248,23 +266,38 @@ The attribute does NOT make READDIR-attr caching reliable for
 directories where it is not set.  Clients MUST NOT interpret the
 absence of fattr4_uncacheable_dirent_metadata, or its value being
 false, as a guarantee that cached READDIR attributes are
-authoritative.  As stated in {{RFC8881}} Section 10.3.2, all
+authoritative.  As stated in {{RFC8881}} Section 10.6, all
 client-cached attributes are subject to staleness; the attribute
 defined in this document only identifies directories for which
-staleness is particularly likely and particularly damaging.
+staleness is particularly likely and particularly damaging.  The base
+specification separates the two concerns this attribute is often accused
+of conflating: {{RFC8881}} Section 10.8.2 governs caching of the
+directory entries themselves, while Section 10.6 governs caching of the
+file attributes that arrive alongside them, and this attribute affects
+only the latter.
 
 This attribute does not define behavior for positive or negative
 name caching or for caching of LOOKUP results outside the scope of
 file attributes returned by READDIR.
 
-Directory delegations grant a client exclusive caching rights subject
-to server recall.  In deployments where directory contents change at
-a rate that makes per-change recall impractical, a directory delegation
-does not provide the always-refetch semantics defined by the uncacheable
-dirent metadata attribute.  These mechanisms are independent.
-
-Clients MUST NOT assume that directory-entry metadata is valid beyond
-the READDIR that produced it.
+A directory delegation ({{RFC8881}} Section 10.9) lets a client cache a
+directory's entries and the directory's own attributes until the server
+recalls the delegation.  It is not recalled when the attributes of an
+entry within the directory change ({{RFC8881}} Sections 10.9.2 and
+10.9.4), so a directory delegation does not, by itself, keep the file
+attributes returned by READDIR fresh.  NOTIFY4_CHANGE_CHILD_ATTRS,
+requested through GET_DIR_DELEGATION, can deliver changed child
+attributes to a delegated client, but it is not a substitute for this
+attribute in the deployments of {{deployment-motivation}}:
+GET_DIR_DELEGATION is OPTIONAL and is not implemented by the clients and
+servers those deployments use; notification cost scales with the number
+of delegated clients times the number of changes, which a directory
+written by thousands of clients makes prohibitive (and {{RFC8881}}
+Section 10.9.4 permits a server that finds a directory is causing too
+many notifications to decline to delegate it); and the
+dirent_notif_delay attribute lets a server bound or refuse
+child-attribute notification, so a client cannot rely on notification
+for freshness.
 
 ## Uncacheable Directory-Entry Metadata {#sec_dirents}
 
@@ -273,9 +306,13 @@ attribute that applies to directory objects.
 Authorization to query or modify this attribute is governed by
 existing NFSv4.2 authorization mechanisms.
 
-Because the attribute applies only to directory objects, a server MUST
-return NFS4ERR_INVAL in response to a GETATTR or SETATTR that requests
-fattr4_uncacheable_dirent_metadata on an object that is not a directory.
+Because the attribute applies only to directory objects, a server that
+receives a GETATTR requesting fattr4_uncacheable_dirent_metadata on an
+object that is not a directory MUST NOT return the attribute value and
+MUST NOT set the attribute bit in the result bitmap, as specified for
+unsupported attributes in {{RFC8881}} Section 18.7.3.  A server that
+receives a SETATTR requesting fattr4_uncacheable_dirent_metadata on an
+object that is not a directory MUST return NFS4ERR_ATTRNOTSUPP.
 
 This attribute is set per directory.  This document does not define
 propagation of the attribute to subdirectories created within a
@@ -284,9 +321,16 @@ local server policy.
 
 If a directory object has the uncacheable dirent metadata attribute
 set, the client MUST retrieve directory-entry metadata from the
-server on each READDIR rather than serving the response from a
-local cache.  This ensures that the returned metadata reflects
-the current state of the directory as determined by the server.
+server on each readdir rather than serving the response from a
+local cache; that is, each application-level directory read is
+satisfied by issuing READDIR to the server rather than from cached
+results.  This ensures that the returned metadata reflects the
+current state of the directory as determined by the server.  For such
+a directory, a client MUST NOT assume that directory-entry metadata is
+valid beyond the readdir that produced it.  Entries and metadata
+retrieved during a single enumeration MAY be retained until that
+enumeration completes, consistent with the snapshot requirement of
+{{RFC8881}} Section 10.8.2.
 
 The uncacheable dirent metadata attribute does not modify the
 semantics of the NFSv4.2 change attribute.  Clients MUST continue to
@@ -301,15 +345,15 @@ attribute may cache directory-entry metadata, and therefore SHOULD
 NOT rely on this attribute for correctness unless client support
 is confirmed.
 
-A directory delegation grants a client the right to cache
-directory-entry metadata until the server recalls the delegation.
-The always-refetch rule of this attribute is incompatible with that
-grant.  If a directory has both the uncacheable dirent metadata
-attribute set and an outstanding directory delegation, the server
-MUST recall the delegation, after which the client follows the
-always-refetch rule on each subsequent READDIR.  A server MUST NOT
-grant a new directory delegation on a directory while the
-uncacheable dirent metadata attribute is set on that directory.
+A directory delegation would let a client serve directory-entry
+metadata from its cache without refetching, which is incompatible with
+the always-refetch rule this attribute defines.  Accordingly, if a
+directory has the uncacheable dirent metadata attribute set and an
+outstanding directory delegation, the server MUST recall the
+delegation, after which the client follows the always-refetch rule on
+each subsequent readdir.  A server MUST NOT grant a new directory
+delegation on a directory while the uncacheable dirent metadata
+attribute is set on that directory.
 
 # Example: Directory Enumeration With and Without Dirent Metadata Caching
 
@@ -436,19 +480,21 @@ at a rate exceeding typical client cache lifetimes are marked with
 the fattr4_uncacheable_dirent_metadata attribute.
 
 The Linux client decodes the attribute in fs/nfs/nfs4xdr.c into a
-per-inode flag (nfsi->uncacheable).  The readdir path in fs/nfs/dir.c
-consults this flag to skip the readdir cache and refetch from the
+per-inode flag (nfsi->uncacheable_dirent_metadata, declared in
+include/linux/nfs_fs.h).  The readdir path in fs/nfs/dir.c consults
+this flag to skip the readdir cache and refetch from the
 server on each readdir call.  Clients may employ more sophisticated
 mechanisms, such as time-limited caches that revalidate against the
 server on each READDIR, provided that the externally observable
 behavior matches the always-refetch semantics described in this
 document.
 
-At the time of writing, the prototype encodes the attribute on the
-wire alongside the companion file-data attribute defined in
-{{I-D.ietf-nfsv4-uncacheable-files}} as a single shared flag.  A
-follow-on prototype branch separates the two attributes as the
-two documents specify.
+The Linux client implementation encodes this attribute as a flag
+distinct from the companion file-data attribute defined in
+{{I-D.ietf-nfsv4-uncacheable-files}}; the two attributes are separated
+as the two documents specify.  That implementation is posted to
+linux-nfs (patches 4-6 of
+<https://lore.kernel.org/linux-nfs/cover.1785140181.git.snitzer@kernel.org/>).
 
 Experience with the prototype indicates that the attribute enables
 servers to identify directories whose contents change faster than
@@ -533,6 +579,11 @@ beyond the READDIR that produced it.
 # IANA Considerations
 
 This document has no IANA actions.
+
+NFSv4.2 attribute numbers are assigned by working group coordination
+rather than through an IANA registry.  This document uses attribute
+number 88, chosen alongside attribute number 87 in
+{{I-D.ietf-nfsv4-uncacheable-files}}.
 
 --- back
 
