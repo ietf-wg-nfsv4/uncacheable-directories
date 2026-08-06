@@ -375,39 +375,46 @@ Application             NFSv4.2 Client        NFSv4.2 Server
 -----------             --------------        --------------
 readdir("/dir")
    |
-   |                     READDIR
+   |                     READDIR, size and
+   |                     time_modify requested
    |-------------------->------------------------>
    |                     entries:
    |                       a (size=100)
    |                       b (size=200)
    |                       c (size=300)
    |<--------------------<------------------------
-   |
-(entries cached in client)
+   |<-- names a, b, c
+                        (attributes retained per
+                         entry, bounded by the
+                         attribute cache lifetime)
+
+stat("/dir/a")
+   |                     (served from the retained
+   |                      READDIR attributes)
+   |<-- size=100
 
                                             (concurrent writer extends
                                              a from size=100 to
                                              size=500)
 
-readdir("/dir")
-   |
-   |                     (no network traffic)
-   |                     entries returned from
-   |                     client cache:
-   |                       a (size=100)
-   |                       b (size=200)
-   |                       c (size=300)
+stat("/dir/a")
+   |                     (no network traffic; still
+   |                      within the cache lifetime)
+   |<-- size=100
 ~~~
 {: #fig-cached-dirents title="Directory-Entry Metadata Cached"}
 
-In this case, {{fig-cached-dirents}} shows that directory-entry
-metadata retrieved by the first READDIR is reused to satisfy the
-second.  The cached response reflects entry a's size as it was
-at the time of the first call; it does not reflect the update
-that occurred at the server between calls.  This behavior is
-typical of legacy NFSv4.2 clients and maximizes performance, but
-it can result in applications observing dirent attribute values
-that do not reflect the current state of the server.
+In this case, {{fig-cached-dirents}} shows that the attributes
+retrieved by the READDIR are retained and reused to satisfy a
+later stat of entry a.  readdir itself yields only names; the
+size the application observes comes from the retained READDIR
+attributes.  The second stat reflects entry a's size as it was
+at the time of the READDIR, not the update that occurred at the
+server between the two calls.  This behavior maximizes
+performance and is what {{RFC8881}} Section 10.6 permits, but
+for the duration of the cache lifetime it can result in
+applications observing dirent attribute values that do not
+reflect the current state of the server.
 
 ## Directory Enumeration With Uncacheable Dirent Metadata
 
@@ -420,15 +427,18 @@ Application             NFSv4.2 Client        NFSv4.2 Server
 -----------             --------------        --------------
 readdir("/dir")
    |
-   |                     READDIR
+   |                     READDIR, size and
+   |                     time_modify requested
    |-------------------->------------------------>
    |                     entries:
    |                       a (size=100)
    |                       b (size=200)
    |                       c (size=300)
    |<--------------------<------------------------
-   |
-(no directory-entry metadata retained)
+   |<-- names a, b, c
+
+stat("/dir/a")
+   |<-- size=100
 
                                             (concurrent writer extends
                                              a from size=100 to
@@ -436,24 +446,30 @@ readdir("/dir")
 
 readdir("/dir")
    |
-   |                     READDIR
+   |                     READDIR, size and
+   |                     time_modify requested
+   |                     (cache not consulted)
    |-------------------->------------------------>
    |                     entries:
    |                       a (size=500)
    |                       b (size=200)
    |                       c (size=300)
    |<--------------------<------------------------
+   |<-- names a, b, c
+
+stat("/dir/a")
+   |<-- size=500
 ~~~
 {: #fig-uncached-dirents title="Directory-Entry Metadata Not Cached"}
 
 In this case, {{fig-uncached-dirents}} shows that each readdir
-request results in a READDIR operation sent to the server, so
-the second call observes the updated size of entry a.  The set
-of entries returned is unchanged between calls; only the
-attribute value differs.  The client may still cache other
-information, provided the externally observable behavior is
-equivalent to retrieving directory-entry metadata from the
-server on each READDIR.
+results in a READDIR sent to the server, and that the attributes
+it returns refresh what a following stat observes.  The set of
+entries returned is unchanged between calls; only the attribute
+value differs.  The client may still cache other information,
+provided the externally observable behavior is equivalent to
+retrieving directory-entry metadata from the server on each
+READDIR.
 
 ## Discussion
 
@@ -593,8 +609,8 @@ number 88, chosen alongside attribute number 87 in
 Trond Myklebust, Mike Snitzer, Jon Flynn, Keith Mannthey, and Thomas
 Haynes all worked on the prototype at Hammerspace.
 
-Rick Macklem, Chuck Lever, Dave Noveck, and Sorin Faibish reviewed
-the document.
+Rick Macklem, Chuck Lever, Dave Noveck, Sorin Faibish, and Jeff
+Layton reviewed the document.
 
 Chris Inacio, Brian Pawlowski, Chuck Lever, Zahed Sarker, and
 Gorry Fairhurst helped guide this process.
