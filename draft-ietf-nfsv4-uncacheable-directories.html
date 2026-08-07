@@ -32,7 +32,7 @@ each READDIR rather than serving the response from a local cache.
     Jinja2 3.1.6
     lxml 6.1.1
     natsort 8.4.0
-    platformdirs 4.10.1
+    platformdirs 4.11.0
     pycountry 24.6.1
     PyYAML 6.0.3
     requests 2.33.1
@@ -72,7 +72,6 @@ each READDIR rather than serving the response from a local cache.
   src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-latin-ext.woff2') format('woff2');
   unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
-
 @font-face {
   font-family: 'Lora';
   font-style: italic;
@@ -121,7 +120,6 @@ each READDIR rather than serving the response from a local cache.
   src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-latin.woff2') format('woff2');
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
-
 @font-face {
   font-family: 'Lora';
   font-style: normal;
@@ -186,7 +184,6 @@ each READDIR rather than serving the response from a local cache.
   font-display: swap;
   src: local('Oxygen Mono'), local('OxygenMono-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/oxygenmono-regular-latin.woff2') format('woff2');
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
 }
 
 @font-face {
@@ -1055,11 +1052,11 @@ svg {
 <thead><tr>
 <td class="left">Internet-Draft</td>
 <td class="center">Uncacheable Dirents</td>
-<td class="right">July 2026</td>
+<td class="right">August 2026</td>
 </tr></thead>
 <tfoot><tr>
 <td class="left">Haynes</td>
-<td class="center">Expires 25 January 2027</td>
+<td class="center">Expires 8 February 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1072,12 +1069,12 @@ svg {
 <dd class="internet-draft">draft-ietf-nfsv4-uncacheable-directories-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-07-24" class="published">24 July 2026</time>
+<time datetime="2026-08-07" class="published">7 August 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-01-25">25 January 2027</time></dd>
+<dd class="expires"><time datetime="2027-02-08">8 February 2027</time></dd>
 <dt class="label-authors">Author:</dt>
 <dd class="authors">
 <div class="author">
@@ -1135,7 +1132,7 @@ code and issues list for this draft can be found at
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 25 January 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 8 February 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1250,8 +1247,8 @@ problem; the conditions are described in <a href="#deployment-motivation" class=
 <p id="section-1-2">In this document, the term directory is used to describe the
 context in which directory entries are retrieved.  The uncacheable
 dirent metadata attribute applies to the caching of directory-entry
-metadata, including names and associated file object metadata such
-as size and timestamps.  It does not prohibit caching of the
+metadata -- the file object attributes, such as size and timestamps,
+returned alongside each entry.  It does not prohibit caching of the
 directory object itself, nor does it affect caching of file data.<a href="#section-1-2" class="pilcrow">¶</a></p>
 <p id="section-1-3">When this best-effort caching returns stale size and timestamp
 information for concurrently modified files, it also undermines the
@@ -1282,23 +1279,30 @@ pipelines where many producers append to a common landing
 directory.  The files within such a directory have their attributes
 -- size and timestamps in particular -- modified at a high rate by
 clients other than the one performing READDIR.<a href="#section-2-1" class="pilcrow">¶</a></p>
-<p id="section-2-2">NFSv4.2 client implementations typically cache READDIR responses for
-a period bounded by either the directory's change attribute or a
-heuristic timeout.  The cached file attributes returned by READDIR
-are NOT invalidated by the directory's change attribute -- they are
-only invalidated by writes to the underlying files, which the
-directory's change attribute does not track.  In deployments of the
-kind described above, the rate at which the underlying files are
-written by other clients can exceed what such caches can track, so
-that an NFSv4.2 client serving READDIR responses from its local cache
-will, with some regularity, return file attribute values that no
-longer reflect the current state of those files at the server.<a href="#section-2-2" class="pilcrow">¶</a></p>
-<p id="section-2-3">The fattr4_uncacheable_dirent_metadata attribute is the server's
+<p id="section-2-2"><span>[<a href="#RFC8881" class="cite xref">RFC8881</a>]</span> Section 10.6 permits a client to cache the file attributes
+returned by READDIR on the same basis as attributes obtained by GETATTR:
+cached per file, bounded by an upper time boundary, and revalidated
+against that file's change attribute.  In a directory receiving writes
+from thousands of compute nodes, any nonzero cache lifetime yields stale
+size and time_modify for most entries most of the time, and revalidating
+each entry individually costs one GETATTR per entry -- the very traffic
+that requesting attributes in READDIR exists to avoid.  NFSv4.2 gives a
+server no in-band way to tell a client that the acceptable attribute
+cache lifetime for the children of a particular directory is zero; mount
+options express this out of band and per client, not per directory.<a href="#section-2-2" class="pilcrow">¶</a></p>
+<p id="section-2-3">The staleness has correctness consequences, not merely cosmetic ones.
+An incremental backup or an rsync scan that decides what to copy from
+the size and time_modify reported for each entry will silently skip a
+file whose cached metadata predates a concurrent write, leaving data
+uncopied.  This attribute lets a server mark the directories where that
+outcome is likely, so that an honoring client fetches current metadata
+on each enumeration.<a href="#section-2-3" class="pilcrow">¶</a></p>
+<p id="section-2-4">The fattr4_uncacheable_dirent_metadata attribute is the server's
 mechanism to identify a directory for which this risk is high
 enough that client-side caching is not safe.  When the server sets
 the attribute on a directory, an honoring client retrieves
 directory-entry metadata from the server on each READDIR rather
-than from a local cache.<a href="#section-2-3" class="pilcrow">¶</a></p>
+than from a local cache.<a href="#section-2-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="definitions">
@@ -1339,8 +1343,17 @@ subject to staleness whenever the underlying files are modified.<a href="#sectio
 <dt id="section-3-1.7">uncacheable dirent metadata attribute</dt>
         <dd style="margin-left: 1.5em" id="section-3-1.8">
           <p id="section-3-1.8.1">An NFSv4.2 file attribute that advises clients not to cache
-directory-entry metadata associated with file objects, including
-names, size, and timestamps.<a href="#section-3-1.8.1" class="pilcrow">¶</a></p>
+directory-entry metadata associated with file objects, such as
+size and timestamps.<a href="#section-3-1.8.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-3-1.9">honoring client</dt>
+        <dd style="margin-left: 1.5em" id="section-3-1.10">
+          <p id="section-3-1.10.1">A client that implements this attribute and enforces the
+always-refetch behavior it defines for a directory on which the
+attribute is set.  The attribute is advisory: a client that does not
+implement it, or that declines to enforce it, is non-honoring and may
+continue to cache directory-entry metadata.<a href="#section-3-1.10.1" class="pilcrow">¶</a></p>
 </dd>
       <dd class="break"></dd>
 </dl>
@@ -1366,8 +1379,10 @@ appear in all capitals, as shown here.<a href="#section-4-1" class="pilcrow">¶<
       </h2>
 <p id="section-5-1">The uncacheable dirent metadata attribute enables servers to identify
 directories where the staleness of cached READDIR attributes is
-particularly likely and particularly damaging.  It is an <span class="bcp14">OPTIONAL</span>
-attribute to implement for NFSv4.2.  If both the client and the
+particularly likely and particularly damaging.  It is a <span class="bcp14">RECOMMENDED</span>
+attribute for NFSv4.2, in the attribute-category sense of <span>[<a href="#RFC8881" class="cite xref">RFC8881</a>]</span>
+Section 5.2 and <span>[<a href="#RFC7862" class="cite xref">RFC7862</a>]</span> Section 12 rather than the BCP 14 sense; a
+server is not required to support it.  If both the client and the
 server support this attribute, and the attribute is set on a
 directory, the client <span class="bcp14">MUST</span> retrieve directory-entry metadata from
 the server on each READDIR rather than serving the response from
@@ -1448,20 +1463,36 @@ caching is known to be unsuitable for that object.<a href="#section-5-10.4.1" cl
 directories where it is not set.  Clients <span class="bcp14">MUST NOT</span> interpret the
 absence of fattr4_uncacheable_dirent_metadata, or its value being
 false, as a guarantee that cached READDIR attributes are
-authoritative.  As stated in <span>[<a href="#RFC8881" class="cite xref">RFC8881</a>]</span> Section 10.3.2, all
+authoritative.  As stated in <span>[<a href="#RFC8881" class="cite xref">RFC8881</a>]</span> Section 10.6, all
 client-cached attributes are subject to staleness; the attribute
 defined in this document only identifies directories for which
-staleness is particularly likely and particularly damaging.<a href="#section-5-11" class="pilcrow">¶</a></p>
+staleness is particularly likely and particularly damaging.  The base
+specification separates the two concerns this attribute is often accused
+of conflating: <span>[<a href="#RFC8881" class="cite xref">RFC8881</a>]</span> Section 10.8.2 governs caching of the
+directory entries themselves, while Section 10.6 governs caching of the
+file attributes that arrive alongside them, and this attribute affects
+only the latter.<a href="#section-5-11" class="pilcrow">¶</a></p>
 <p id="section-5-12">This attribute does not define behavior for positive or negative
 name caching or for caching of LOOKUP results outside the scope of
 file attributes returned by READDIR.<a href="#section-5-12" class="pilcrow">¶</a></p>
-<p id="section-5-13">Directory delegations grant a client exclusive caching rights subject
-to server recall.  In deployments where directory contents change at
-a rate that makes per-change recall impractical, a directory delegation
-does not provide the always-refetch semantics defined by the uncacheable
-dirent metadata attribute.  These mechanisms are independent.<a href="#section-5-13" class="pilcrow">¶</a></p>
-<p id="section-5-14">Clients <span class="bcp14">MUST NOT</span> assume that directory-entry metadata is valid beyond
-the READDIR that produced it.<a href="#section-5-14" class="pilcrow">¶</a></p>
+<p id="section-5-13">A directory delegation (<span>[<a href="#RFC8881" class="cite xref">RFC8881</a>]</span> Section 10.9) lets a client cache a
+directory's entries and the directory's own attributes until the server
+recalls the delegation.  It is not recalled when the attributes of an
+entry within the directory change (<span>[<a href="#RFC8881" class="cite xref">RFC8881</a>]</span> Sections 10.9.2 and
+10.9.4), so a directory delegation does not, by itself, keep the file
+attributes returned by READDIR fresh.  NOTIFY4_CHANGE_CHILD_ATTRS,
+requested through GET_DIR_DELEGATION, can deliver changed child
+attributes to a delegated client, but it is not a substitute for this
+attribute in the deployments of <a href="#deployment-motivation" class="auto internal xref">Section 2</a>:
+GET_DIR_DELEGATION is <span class="bcp14">OPTIONAL</span> and is not implemented by the clients and
+servers those deployments use; notification cost scales with the number
+of delegated clients times the number of changes, which a directory
+written by thousands of clients makes prohibitive (and <span>[<a href="#RFC8881" class="cite xref">RFC8881</a>]</span>
+Section 10.9.4 permits a server that finds a directory is causing too
+many notifications to decline to delegate it); and the
+dirent_notif_delay attribute lets a server bound or refuse
+child-attribute notification, so a client cannot rely on notification
+for freshness.<a href="#section-5-13" class="pilcrow">¶</a></p>
 <div id="sec_dirents">
 <section id="section-5.1">
         <h3 id="name-uncacheable-directory-entry">
@@ -1471,18 +1502,29 @@ the READDIR that produced it.<a href="#section-5-14" class="pilcrow">¶</a></p>
 attribute that applies to directory objects.
 Authorization to query or modify this attribute is governed by
 existing NFSv4.2 authorization mechanisms.<a href="#section-5.1-1" class="pilcrow">¶</a></p>
-<p id="section-5.1-2">Because the attribute applies only to directory objects, a server <span class="bcp14">MUST</span>
-return NFS4ERR_INVAL in response to a GETATTR or SETATTR that requests
-fattr4_uncacheable_dirent_metadata on an object that is not a directory.<a href="#section-5.1-2" class="pilcrow">¶</a></p>
+<p id="section-5.1-2">Because the attribute applies only to directory objects, a server that
+receives a GETATTR requesting fattr4_uncacheable_dirent_metadata on an
+object that is not a directory <span class="bcp14">MUST NOT</span> return the attribute value and
+<span class="bcp14">MUST NOT</span> set the attribute bit in the result bitmap, as specified for
+unsupported attributes in <span>[<a href="#RFC8881" class="cite xref">RFC8881</a>]</span> Section 18.7.3.  A server that
+receives a SETATTR requesting fattr4_uncacheable_dirent_metadata on an
+object that is not a directory <span class="bcp14">MUST</span> return NFS4ERR_ATTRNOTSUPP.<a href="#section-5.1-2" class="pilcrow">¶</a></p>
 <p id="section-5.1-3">This attribute is set per directory.  This document does not define
 propagation of the attribute to subdirectories created within a
 directory on which it is set; any such inheritance is a matter of
 local server policy.<a href="#section-5.1-3" class="pilcrow">¶</a></p>
 <p id="section-5.1-4">If a directory object has the uncacheable dirent metadata attribute
 set, the client <span class="bcp14">MUST</span> retrieve directory-entry metadata from the
-server on each READDIR rather than serving the response from a
-local cache.  This ensures that the returned metadata reflects
-the current state of the directory as determined by the server.<a href="#section-5.1-4" class="pilcrow">¶</a></p>
+server on each readdir rather than serving the response from a
+local cache; that is, each application-level directory read is
+satisfied by issuing READDIR to the server rather than from cached
+results.  This ensures that the returned metadata reflects the
+current state of the directory as determined by the server.  For such
+a directory, a client <span class="bcp14">MUST NOT</span> assume that directory-entry metadata is
+valid beyond the readdir that produced it.  Entries and metadata
+retrieved during a single enumeration <span class="bcp14">MAY</span> be retained until that
+enumeration completes, consistent with the snapshot requirement of
+<span>[<a href="#RFC8881" class="cite xref">RFC8881</a>]</span> Section 10.8.2.<a href="#section-5.1-4" class="pilcrow">¶</a></p>
 <p id="section-5.1-5">The uncacheable dirent metadata attribute does not modify the
 semantics of the NFSv4.2 change attribute.  Clients <span class="bcp14">MUST</span> continue to
 use the change attribute to detect directory modifications and to
@@ -1493,15 +1535,15 @@ validation.<a href="#section-5.1-5" class="pilcrow">¶</a></p>
 <p id="section-5.1-6">Servers <span class="bcp14">SHOULD</span> assume that clients which do not query or set this
 attribute may cache directory-entry metadata, and therefore <span class="bcp14">SHOULD NOT</span> rely on this attribute for correctness unless client support
 is confirmed.<a href="#section-5.1-6" class="pilcrow">¶</a></p>
-<p id="section-5.1-7">A directory delegation grants a client the right to cache
-directory-entry metadata until the server recalls the delegation.
-The always-refetch rule of this attribute is incompatible with that
-grant.  If a directory has both the uncacheable dirent metadata
-attribute set and an outstanding directory delegation, the server
-<span class="bcp14">MUST</span> recall the delegation, after which the client follows the
-always-refetch rule on each subsequent READDIR.  A server <span class="bcp14">MUST NOT</span>
-grant a new directory delegation on a directory while the
-uncacheable dirent metadata attribute is set on that directory.<a href="#section-5.1-7" class="pilcrow">¶</a></p>
+<p id="section-5.1-7">A directory delegation would let a client serve directory-entry
+metadata from its cache without refetching, which is incompatible with
+the always-refetch rule this attribute defines.  Accordingly, if a
+directory has the uncacheable dirent metadata attribute set and an
+outstanding directory delegation, the server <span class="bcp14">MUST</span> recall the
+delegation, after which the client follows the always-refetch rule on
+each subsequent readdir.  A server <span class="bcp14">MUST NOT</span> grant a new directory
+delegation on a directory while the uncacheable dirent metadata
+attribute is set on that directory.<a href="#section-5.1-7" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -1533,42 +1575,49 @@ Application             NFSv4.2 Client        NFSv4.2 Server
 -----------             --------------        --------------
 readdir("/dir")
    |
-   |                     READDIR
+   |                     READDIR, size and
+   |                     time_modify requested
    |--------------------&gt;------------------------&gt;
    |                     entries:
    |                       a (size=100)
    |                       b (size=200)
    |                       c (size=300)
    |&lt;--------------------&lt;------------------------
-   |
-(entries cached in client)
+   |&lt;-- names a, b, c
+                        (attributes retained per
+                         entry, bounded by the
+                         attribute cache lifetime)
+
+stat("/dir/a")
+   |                     (served from the retained
+   |                      READDIR attributes)
+   |&lt;-- size=100
 
                                             (concurrent writer extends
                                              a from size=100 to
                                              size=500)
 
-readdir("/dir")
-   |
-   |                     (no network traffic)
-   |                     entries returned from
-   |                     client cache:
-   |                       a (size=100)
-   |                       b (size=200)
-   |                       c (size=300)
+stat("/dir/a")
+   |                     (no network traffic; still
+   |                      within the cache lifetime)
+   |&lt;-- size=100
 </pre>
 </div>
 <figcaption><a href="#figure-1" class="selfRef">Figure 1</a>:
 <a href="#name-directory-entry-metadata-ca" class="selfRef">Directory-Entry Metadata Cached</a>
           </figcaption></figure>
 </div>
-<p id="section-6.1-3">In this case, <a href="#fig-cached-dirents" class="auto internal xref">Figure 1</a> shows that directory-entry
-metadata retrieved by the first READDIR is reused to satisfy the
-second.  The cached response reflects entry a's size as it was
-at the time of the first call; it does not reflect the update
-that occurred at the server between calls.  This behavior is
-typical of legacy NFSv4.2 clients and maximizes performance, but
-it can result in applications observing dirent attribute values
-that do not reflect the current state of the server.<a href="#section-6.1-3" class="pilcrow">¶</a></p>
+<p id="section-6.1-3">In this case, <a href="#fig-cached-dirents" class="auto internal xref">Figure 1</a> shows that the attributes
+retrieved by the READDIR are retained and reused to satisfy a
+later stat of entry a.  readdir itself yields only names; the
+size the application observes comes from the retained READDIR
+attributes.  The second stat reflects entry a's size as it was
+at the time of the READDIR, not the update that occurred at the
+server between the two calls.  This behavior maximizes
+performance and is what <span>[<a href="#RFC8881" class="cite xref">RFC8881</a>]</span> Section 10.6 permits, but
+for the duration of the cache lifetime it can result in
+applications observing dirent attribute values that do not
+reflect the current state of the server.<a href="#section-6.1-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="directory-enumeration-with-uncacheable-dirent-metadata">
@@ -1587,15 +1636,18 @@ Application             NFSv4.2 Client        NFSv4.2 Server
 -----------             --------------        --------------
 readdir("/dir")
    |
-   |                     READDIR
+   |                     READDIR, size and
+   |                     time_modify requested
    |--------------------&gt;------------------------&gt;
    |                     entries:
    |                       a (size=100)
    |                       b (size=200)
    |                       c (size=300)
    |&lt;--------------------&lt;------------------------
-   |
-(no directory-entry metadata retained)
+   |&lt;-- names a, b, c
+
+stat("/dir/a")
+   |&lt;-- size=100
 
                                             (concurrent writer extends
                                              a from size=100 to
@@ -1603,13 +1655,19 @@ readdir("/dir")
 
 readdir("/dir")
    |
-   |                     READDIR
+   |                     READDIR, size and
+   |                     time_modify requested
+   |                     (cache not consulted)
    |--------------------&gt;------------------------&gt;
    |                     entries:
    |                       a (size=500)
    |                       b (size=200)
    |                       c (size=300)
    |&lt;--------------------&lt;------------------------
+   |&lt;-- names a, b, c
+
+stat("/dir/a")
+   |&lt;-- size=500
 </pre>
 </div>
 <figcaption><a href="#figure-2" class="selfRef">Figure 2</a>:
@@ -1617,13 +1675,13 @@ readdir("/dir")
           </figcaption></figure>
 </div>
 <p id="section-6.2-3">In this case, <a href="#fig-uncached-dirents" class="auto internal xref">Figure 2</a> shows that each readdir
-request results in a READDIR operation sent to the server, so
-the second call observes the updated size of entry a.  The set
-of entries returned is unchanged between calls; only the
-attribute value differs.  The client may still cache other
-information, provided the externally observable behavior is
-equivalent to retrieving directory-entry metadata from the
-server on each READDIR.<a href="#section-6.2-3" class="pilcrow">¶</a></p>
+results in a READDIR sent to the server, and that the attributes
+it returns refresh what a following stat observes.  The set of
+entries returned is unchanged between calls; only the attribute
+value differs.  The client may still cache other information,
+provided the externally observable behavior is equivalent to
+retrieving directory-entry metadata from the server on each
+READDIR.<a href="#section-6.2-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="discussion">
@@ -1657,18 +1715,20 @@ local cache.<a href="#section-7-2" class="pilcrow">¶</a></p>
 at a rate exceeding typical client cache lifetimes are marked with
 the fattr4_uncacheable_dirent_metadata attribute.<a href="#section-7-3" class="pilcrow">¶</a></p>
 <p id="section-7-4">The Linux client decodes the attribute in fs/nfs/nfs4xdr.c into a
-per-inode flag (nfsi-&gt;uncacheable).  The readdir path in fs/nfs/dir.c
-consults this flag to skip the readdir cache and refetch from the
+per-inode flag (nfsi-&gt;uncacheable_dirent_metadata, declared in
+include/linux/nfs_fs.h).  The readdir path in fs/nfs/dir.c consults
+this flag to skip the readdir cache and refetch from the
 server on each readdir call.  Clients may employ more sophisticated
 mechanisms, such as time-limited caches that revalidate against the
 server on each READDIR, provided that the externally observable
 behavior matches the always-refetch semantics described in this
 document.<a href="#section-7-4" class="pilcrow">¶</a></p>
-<p id="section-7-5">At the time of writing, the prototype encodes the attribute on the
-wire alongside the companion file-data attribute defined in
-<span>[<a href="#I-D.ietf-nfsv4-uncacheable-files" class="cite xref">I-D.ietf-nfsv4-uncacheable-files</a>]</span> as a single shared flag.  A
-follow-on prototype branch separates the two attributes as the
-two documents specify.<a href="#section-7-5" class="pilcrow">¶</a></p>
+<p id="section-7-5">The Linux client implementation encodes this attribute as a flag
+distinct from the companion file-data attribute defined in
+<span>[<a href="#I-D.ietf-nfsv4-uncacheable-files" class="cite xref">I-D.ietf-nfsv4-uncacheable-files</a>]</span>; the two attributes are separated
+as the two documents specify.  That implementation is posted to
+linux-nfs (patches 4-6 of
+<a href="https://lore.kernel.org/linux-nfs/cover.1785140181.git.snitzer@kernel.org/">https://lore.kernel.org/linux-nfs/cover.1785140181.git.snitzer@kernel.org/</a>).<a href="#section-7-5" class="pilcrow">¶</a></p>
 <p id="section-7-6">Experience with the prototype indicates that the attribute enables
 servers to identify directories whose contents change faster than
 typical NFSv4.2 client cache lifetimes can track, while remaining
@@ -1764,6 +1824,10 @@ beyond the READDIR that produced it.<a href="#section-10-5" class="pilcrow">¶</
 <a href="#section-11" class="section-number selfRef">11. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
       </h2>
 <p id="section-11-1">This document has no IANA actions.<a href="#section-11-1" class="pilcrow">¶</a></p>
+<p id="section-11-2">NFSv4.2 attribute numbers are assigned by working group coordination
+rather than through an IANA registry.  This document uses attribute
+number 88, chosen alongside attribute number 87 in
+<span>[<a href="#I-D.ietf-nfsv4-uncacheable-files" class="cite xref">I-D.ietf-nfsv4-uncacheable-files</a>]</span>.<a href="#section-11-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="sec-combined-references">
@@ -1816,7 +1880,7 @@ beyond the READDIR that produced it.<a href="#section-10-5" class="pilcrow">¶</
 <dl class="references">
 <dt id="I-D.ietf-nfsv4-uncacheable-files">[I-D.ietf-nfsv4-uncacheable-files]</dt>
         <dd>
-<span class="refAuthor">Haynes, T.</span>, <span class="refTitle">"Adding an Uncacheable File Data Attribute to NFSv4.2"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-nfsv4-uncacheable-files-10</span>, <time datetime="2026-06-27" class="refDate">27 June 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-nfsv4-uncacheable-files-10">https://datatracker.ietf.org/doc/html/draft-ietf-nfsv4-uncacheable-files-10</a>&gt;</span>. </dd>
+<span class="refAuthor">Haynes, T.</span>, <span class="refTitle">"Adding an Uncacheable File Data Attribute to NFSv4.2"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-nfsv4-uncacheable-files-11</span>, <time datetime="2026-07-24" class="refDate">24 July 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-nfsv4-uncacheable-files-11">https://datatracker.ietf.org/doc/html/draft-ietf-nfsv4-uncacheable-files-11</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC7204">[RFC7204]</dt>
       <dd>
@@ -1834,8 +1898,8 @@ beyond the READDIR that produced it.<a href="#section-10-5" class="pilcrow">¶</
       </h2>
 <p id="appendix-A-1">Trond Myklebust, Mike Snitzer, Jon Flynn, Keith Mannthey, and Thomas
 Haynes all worked on the prototype at Hammerspace.<a href="#appendix-A-1" class="pilcrow">¶</a></p>
-<p id="appendix-A-2">Rick Macklem, Chuck Lever, Dave Noveck, and Sorin Faibish reviewed
-the document.<a href="#appendix-A-2" class="pilcrow">¶</a></p>
+<p id="appendix-A-2">Rick Macklem, Chuck Lever, Dave Noveck, Sorin Faibish, Christoph
+Hellwig, and Jeff Layton reviewed the document.<a href="#appendix-A-2" class="pilcrow">¶</a></p>
 <p id="appendix-A-3">Chris Inacio, Brian Pawlowski, Chuck Lever, Zahed Sarker, and
 Gorry Fairhurst helped guide this process.<a href="#appendix-A-3" class="pilcrow">¶</a></p>
 </section>
