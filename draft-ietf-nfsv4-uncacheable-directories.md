@@ -609,8 +609,8 @@ number 88, chosen alongside attribute number 87 in
 Trond Myklebust, Mike Snitzer, Jon Flynn, Keith Mannthey, and Thomas
 Haynes all worked on the prototype at Hammerspace.
 
-Rick Macklem, Chuck Lever, Dave Noveck, Sorin Faibish, and Jeff
-Layton reviewed the document.
+Rick Macklem, Chuck Lever, Dave Noveck, Sorin Faibish, Christoph
+Hellwig, and Jeff Layton reviewed the document.
 
 Chris Inacio, Brian Pawlowski, Chuck Lever, Zahed Sarker, and
 Gorry Fairhurst helped guide this process.
