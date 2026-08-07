@@ -183,9 +183,12 @@ and error handling as defined in {{RFC8881}} and {{RFC7862}}.
 
 # Caching of Directory-Entry Metadata
 
-The uncacheable dirent metadata attribute enables servers to identify
-directories where the staleness of cached READDIR attributes is
-particularly likely and particularly damaging.  It is a RECOMMENDED
+The uncacheable dirent metadata attribute constrains what a READDIR on
+a particular directory does: it directs an honoring client to fetch the
+entries' file attributes from the server rather than serve them from a
+local cache.  A server sets it on the directories where it knows the
+staleness of cached READDIR attributes is particularly likely and
+particularly damaging.  It is a RECOMMENDED
 attribute for NFSv4.2, in the attribute-category sense of {{RFC8881}}
 Section 5.2 and {{RFC7862}} Section 12 rather than the BCP 14 sense; a
 server is not required to support it.  If both the client and the
@@ -193,6 +196,12 @@ server support this attribute, and the attribute is set on a
 directory, the client MUST retrieve directory-entry metadata from
 the server on each READDIR rather than serving the response from
 a local cache.
+
+Because the attribute governs a READDIR rather than the objects the
+entries name, it makes no claim about those objects.  A file reached
+through a directory on which the attribute is not set is unaffected,
+including where the same file is linked into both a directory on which
+it is set and one on which it is not.
 
 This document specifies the required observable behavior rather
 than mandating a particular internal implementation strategy.
