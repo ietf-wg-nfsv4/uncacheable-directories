@@ -236,10 +236,6 @@ is supported for a given directory by examining the supported_attrs
 attribute for that directory's filesystem or by probing support using
 the procedures described in {{RFC8178}}.
 
-The only way that the server can determine that the client supports
-the attribute is if the client sends either a GETATTR or a SETATTR
-with the uncacheable dirent metadata attribute.
-
 The uncacheable dirent metadata attribute governs the client's
 caching of READDIR responses for the directory.  It does NOT govern:
 
@@ -364,10 +360,14 @@ dirent metadata caching is suppressed.  Suppressing caching
 of dirent metadata does not remove the need for change-based
 validation.
 
-Servers SHOULD assume that clients which do not query or set this
-attribute may cache dirent metadata, and therefore SHOULD
-NOT rely on this attribute for correctness unless client support
-is confirmed.
+This attribute is advisory, so servers SHOULD NOT rely on it for
+correctness: a client that does not implement it, or that declines to
+enforce it, may continue to cache dirent metadata.  A server cannot
+distinguish those clients from honoring ones.  Observing a GETATTR or
+a SETATTR of the attribute shows only that a client knows the
+attribute exists, not that it enforces the always-refetch rule, so
+such a request is not a basis for treating that client's caching as
+suppressed.
 
 A directory delegation would let a client serve dirent
 metadata from its cache without refetching, which is incompatible with
