@@ -4,11 +4,11 @@
 
 Network File System Version 4                                  T. Haynes
 Internet-Draft                                               Hammerspace
-Intended status: Standards Track                           7 August 2026
-Expires: 8 February 2027
+Intended status: Standards Track                          18 August 2026
+Expires: 19 February 2027
 
 
-  Adding an Uncacheable Directory-Entry Metadata Attribute to NFSv4.2
+       Adding an Uncacheable Dirent Metadata Attribute to NFSv4.2
             draft-ietf-nfsv4-uncacheable-directories-latest
 
 Abstract
@@ -22,9 +22,9 @@ Abstract
    incorrect size and timestamp values often enough to be a deployment
    problem.  This document introduces an uncacheable dirent metadata
    attribute for NFSv4.2 that allows a server to identify a directory
-   for which an honoring client is required to retrieve directory-entry
-   metadata from the server on each READDIR rather than serving the
-   response from a local cache.
+   for which an honoring client is required to retrieve dirent metadata
+   from the server on each READDIR rather than serving the response from
+   a local cache.
 
 Note to Readers
 
@@ -54,7 +54,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 8 February 2027.
+   This Internet-Draft will expire on 19 February 2027.
 
 Copyright Notice
 
@@ -76,16 +76,15 @@ Table of Contents
    2.  Deployment Motivation
    3.  Definitions
    4.  Requirements Language
-   5.  Caching of Directory-Entry Metadata
-     5.1.  Uncacheable Directory-Entry Metadata
+   5.  Caching of Dirent Metadata
+     5.1.  Uncacheable Dirent Metadata
    6.  Example: Directory Enumeration With and Without Dirent Metadata
            Caching
-     6.1.  Classic Directory Enumeration (Directory-Entry Metadata
-           Cached)
+     6.1.  Classic Directory Enumeration (Dirent Metadata Cached)
      6.2.  Directory Enumeration With Uncacheable Dirent Metadata
      6.3.  Discussion
    7.  Implementation Status
-   8.  XDR for Uncacheable Dirents Attribute
+   8.  XDR for the Uncacheable Dirent Metadata Attribute
    9.  Extraction of XDR
    10. Security Considerations
    11. IANA Considerations
@@ -108,8 +107,8 @@ Table of Contents
 
    In this document, the term directory is used to describe the context
    in which directory entries are retrieved.  The uncacheable dirent
-   metadata attribute applies to the caching of directory-entry metadata
-   -- the file object attributes, such as size and timestamps, returned
+   metadata attribute applies to the caching of dirent metadata -- the
+   file object attributes, such as size and timestamps, returned
    alongside each entry.  It does not prohibit caching of the directory
    object itself, nor does it affect caching of file data.
 
@@ -121,11 +120,11 @@ Table of Contents
    when file data caching is disabled.
 
    This document introduces the uncacheable dirent metadata attribute to
-   NFSv4.2 to allow servers to advise clients that caching of directory-
-   entry metadata is unsuitable.  Using the process detailed in
-   [RFC8178], the revisions in this document become an extension of
-   NFSv4.2 [RFC7862].  They are built on top of the external data
-   representation (XDR) [RFC4506] generated from [RFC7863].
+   NFSv4.2 to allow servers to advise clients that caching of dirent
+   metadata is unsuitable.  Using the process detailed in [RFC8178], the
+   revisions in this document become an extension of NFSv4.2 [RFC7862].
+   They are built on top of the external data representation (XDR)
+   [RFC4506] generated from [RFC7863].
 
 2.  Deployment Motivation
 
@@ -164,9 +163,9 @@ Table of Contents
    The fattr4_uncacheable_dirent_metadata attribute is the server's
    mechanism to identify a directory for which this risk is high enough
    that client-side caching is not safe.  When the server sets the
-   attribute on a directory, an honoring client retrieves directory-
-   entry metadata from the server on each READDIR rather than from a
-   local cache.
+   attribute on a directory, an honoring client retrieves dirent
+   metadata from the server on each READDIR rather than from a local
+   cache.
 
 3.  Definitions
 
@@ -185,23 +184,30 @@ Table of Contents
       response"; it does not assert that those attributes inherit the
       directory's cache-coherence semantics.
 
-   dirent caching  A client-side cache of READDIR results -- the (name,
-      file handle, file attributes) tuples -- used to avoid repeated
-      READDIR and GETATTR traffic.  Because the file attributes in a
-      cached READDIR response are not invalidated by the directory's
-      change attribute (only by writes to the underlying files), this
-      caching is inherently best-effort and subject to staleness
-      whenever the underlying files are modified.
+   dirent caching  A client-side cache of the dirents themselves -- the
+      (name, file handle) pairs -- used to avoid repeated READDIR
+      traffic.  Whether such a cache remains valid is governed by the
+      directory's change attribute: the directory changes when an entry
+      is created, removed, or renamed.  Nothing in this document
+      constrains dirent caching.
+
+   dirent metadata caching  A client-side cache of the dirent metadata
+      returned alongside those entries, used to avoid repeated GETATTR
+      traffic.  Because those file attributes are not invalidated by the
+      directory's change attribute (only by writes to the underlying
+      files), this caching is inherently best-effort and subject to
+      staleness whenever the underlying files are modified.  This is the
+      caching that the attribute defined in this document constrains.
 
    uncacheable dirent metadata attribute  An NFSv4.2 file attribute that
-      advises clients not to cache directory-entry metadata associated
-      with file objects, such as size and timestamps.
+      advises clients not to cache dirent metadata associated with file
+      objects, such as size and timestamps.
 
    honoring client  A client that implements this attribute and enforces
       the always-refetch behavior it defines for a directory on which
       the attribute is set.  The attribute is advisory: a client that
       does not implement it, or that declines to enforce it, is non-
-      honoring and may continue to cache directory-entry metadata.
+      honoring and may continue to cache dirent metadata.
 
    This document assumes familiarity with NFSv4.2 operations,
    attributes, and error handling as defined in [RFC8881] and [RFC7862].
@@ -214,39 +220,49 @@ Table of Contents
    BCP 14 [RFC2119] [RFC8174] when, and only when, they appear in all
    capitals, as shown here.
 
-5.  Caching of Directory-Entry Metadata
+5.  Caching of Dirent Metadata
 
-   The uncacheable dirent metadata attribute enables servers to identify
-   directories where the staleness of cached READDIR attributes is
-   particularly likely and particularly damaging.  It is a RECOMMENDED
-   attribute for NFSv4.2, in the attribute-category sense of [RFC8881]
-   Section 5.2 and [RFC7862] Section 12 rather than the BCP 14 sense; a
-   server is not required to support it.  If both the client and the
-   server support this attribute, and the attribute is set on a
-   directory, the client MUST retrieve directory-entry metadata from the
-   server on each READDIR rather than serving the response from a local
-   cache.
+   The uncacheable dirent metadata attribute constrains what a READDIR
+   on a particular directory does: it directs an honoring client to
+   fetch the entries' file attributes from the server rather than serve
+   them from a local cache.  It constrains dirent metadata caching only:
+   an honoring client may continue to cache the dirents themselves,
+   validated by the directory's change attribute as it would be for any
+   other directory, and refetch only their metadata.  This matches how
+   clients are typically built, with the dirent cache maintained
+   separately from the attributes obtained for the objects the entries
+   name.  A server sets it on the directories where it knows the
+   staleness of cached READDIR attributes is particularly likely and
+   particularly damaging.  It is a RECOMMENDED attribute for NFSv4.2, in
+   the attribute-category sense of [RFC8881] Section 5.2 and [RFC7862]
+   Section 12 rather than the BCP 14 sense; a server is not required to
+   support it.  If both the client and the server support this
+   attribute, and the attribute is set on a directory, the client MUST
+   retrieve dirent metadata from the server on each READDIR rather than
+   serving the response from a local cache.
+
+   Because the attribute governs a READDIR rather than the objects the
+   entries name, it makes no claim about those objects.  A file reached
+   through a directory on which the attribute is not set is unaffected,
+   including where the same file is linked into both a directory on
+   which it is set and one on which it is not.
 
    This document specifies the required observable behavior rather than
    mandating a particular internal implementation strategy.  Clients MAY
    employ more sophisticated mechanisms, such as time-limited caches
    that revalidate against the server on each READDIR, provided that the
-   externally visible behavior is equivalent to retrieving directory-
-   entry metadata from the server on each READDIR.
+   externally visible behavior is equivalent to retrieving dirent
+   metadata from the server on each READDIR.
 
    Allowing clients to set this attribute provides a portable mechanism
-   to request that directory-entry metadata not be cached, without
-   requiring changes to application behavior or out-of-band
-   administrative configuration.
+   to request that dirent metadata not be cached, without requiring
+   changes to application behavior or out-of-band administrative
+   configuration.
 
    A client can determine whether the uncacheable dirent metadata
    attribute is supported for a given directory by examining the
    supported_attrs attribute for that directory's filesystem or by
    probing support using the procedures described in [RFC8178].
-
-   The only way that the server can determine that the client supports
-   the attribute is if the client sends either a GETATTR or a SETATTR
-   with the uncacheable dirent metadata attribute.
 
    The uncacheable dirent metadata attribute governs the client's
    caching of READDIR responses for the directory.  It does NOT govern:
@@ -294,7 +310,7 @@ Table of Contents
       general case.  It is a per-object server-side signal that the
       caching is known to be unsuitable for that object.
 
-   The attribute does NOT make READDIR-attr caching reliable for
+   The attribute does NOT make dirent metadata caching reliable for
    directories where it is not set.  Clients MUST NOT interpret the
    absence of fattr4_uncacheable_dirent_metadata, or its value being
    false, as a guarantee that cached READDIR attributes are
@@ -331,7 +347,7 @@ Table of Contents
    attribute notification, so a client cannot rely on notification for
    freshness.
 
-5.1.  Uncacheable Directory-Entry Metadata
+5.1.  Uncacheable Dirent Metadata
 
    The fattr4_uncacheable_dirent_metadata attribute is a read-write
    boolean attribute that applies to directory objects.  Authorization
@@ -353,56 +369,58 @@ Table of Contents
    local server policy.
 
    If a directory object has the uncacheable dirent metadata attribute
-   set, the client MUST retrieve directory-entry metadata from the
-   server on each readdir rather than serving the response from a local
-   cache; that is, each application-level directory read is satisfied by
-   issuing READDIR to the server rather than from cached results.  This
-   ensures that the returned metadata reflects the current state of the
-   directory as determined by the server.  For such a directory, a
-   client MUST NOT assume that directory-entry metadata is valid beyond
-   the readdir that produced it.  Entries and metadata retrieved during
-   a single enumeration MAY be retained until that enumeration
-   completes, consistent with the snapshot requirement of [RFC8881]
-   Section 10.8.2.
+   set, the client MUST retrieve dirent metadata from the server on each
+   readdir rather than serving the response from a local cache; that is,
+   each application-level directory read is satisfied by issuing READDIR
+   to the server rather than from cached results.  This ensures that the
+   returned metadata reflects the current state of the directory as
+   determined by the server.  For such a directory, a client MUST NOT
+   assume that dirent metadata is valid beyond the readdir that produced
+   it.  Entries and metadata retrieved during a single enumeration MAY
+   be retained until that enumeration completes, consistent with the
+   snapshot requirement of [RFC8881] Section 10.8.2.
 
    The uncacheable dirent metadata attribute does not modify the
    semantics of the NFSv4.2 change attribute.  Clients MUST continue to
    use the change attribute to detect directory modifications and to
-   determine when directory contents may have changed, even when
-   directory-entry metadata caching is suppressed.  Suppressing caching
-   of directory-entry metadata does not remove the need for change-based
-   validation.
+   determine when directory contents may have changed, even when dirent
+   metadata caching is suppressed.  Suppressing caching of dirent
+   metadata does not remove the need for change-based validation.
 
-   Servers SHOULD assume that clients which do not query or set this
-   attribute may cache directory-entry metadata, and therefore SHOULD
-   NOT rely on this attribute for correctness unless client support is
-   confirmed.
+   This attribute is advisory, so servers SHOULD NOT rely on it for
+   correctness: a client that does not implement it, or that declines to
+   enforce it, may continue to cache dirent metadata.  A server cannot
+   distinguish those clients from honoring ones.  Observing a GETATTR or
+   a SETATTR of the attribute shows only that a client knows the
+   attribute exists, not that it enforces the always-refetch rule, so
+   such a request is not a basis for treating that client's caching as
+   suppressed.
 
-   A directory delegation would let a client serve directory-entry
-   metadata from its cache without refetching, which is incompatible
-   with the always-refetch rule this attribute defines.  Accordingly, if
-   a directory has the uncacheable dirent metadata attribute set and an
-   outstanding directory delegation, the server MUST recall the
-   delegation, after which the client follows the always-refetch rule on
-   each subsequent readdir.  A server MUST NOT grant a new directory
-   delegation on a directory while the uncacheable dirent metadata
-   attribute is set on that directory.
+   A directory delegation would let a client serve dirent metadata from
+   its cache without refetching, which is incompatible with the always-
+   refetch rule this attribute defines.  Accordingly, if a directory has
+   the uncacheable dirent metadata attribute set and an outstanding
+   directory delegation, the server MUST recall the delegation, after
+   which the client follows the always-refetch rule on each subsequent
+   readdir.  A server MUST NOT grant a new directory delegation on a
+   directory while the uncacheable dirent metadata attribute is set on
+   that directory.
 
 6.  Example: Directory Enumeration With and Without Dirent Metadata
     Caching
 
    This example illustrates the difference in client-visible behavior
-   when directory-entry metadata caching is enabled versus when the
-   uncacheable dirent metadata attribute is set on a directory.  In both
-   scenarios, the set of entries in the directory does not change
-   between the two calls; an attribute value of one entry is updated at
-   the server between calls.  The difference is whether the second call
-   observes the updated attribute value.
+   when dirent metadata caching is enabled versus when the uncacheable
+   dirent metadata attribute is set on a directory.  In both scenarios,
+   the set of entries in the directory does not change between the two
+   calls; an attribute value of one entry is updated at the server
+   between calls.  The difference is whether the second call observes
+   the updated attribute value.
 
-6.1.  Classic Directory Enumeration (Directory-Entry Metadata Cached)
+6.1.  Classic Directory Enumeration (Dirent Metadata Cached)
 
-   In this scenario, the client caches directory-entry metadata obtained
-   from the server and reuses it for the second readdir.
+   In this scenario, the client caches dirent metadata obtained from the
+   server and reuses it for the second readdir.
 
   Application             NFSv4.2 Client        NFSv4.2 Server
   -----------             --------------        --------------
@@ -435,7 +453,7 @@ Table of Contents
      |                      within the cache lifetime)
      |<-- size=100
 
-                Figure 1: Directory-Entry Metadata Cached
+                     Figure 1: Dirent Metadata Cached
 
    In this case, Figure 1 shows that the attributes retrieved by the
    READDIR are retained and reused to satisfy a later stat of entry a.
@@ -451,8 +469,8 @@ Table of Contents
 6.2.  Directory Enumeration With Uncacheable Dirent Metadata
 
    In this scenario, the directory has the uncacheable dirent metadata
-   attribute set.  The client retrieves directory-entry metadata from
-   the server on each READDIR.
+   attribute set.  The client retrieves dirent metadata from the server
+   on each READDIR.
 
   Application             NFSv4.2 Client        NFSv4.2 Server
   -----------             --------------        --------------
@@ -491,15 +509,15 @@ Table of Contents
   stat("/dir/a")
      |<-- size=500
 
-              Figure 2: Directory-Entry Metadata Not Cached
+                   Figure 2: Dirent Metadata Not Cached
 
    In this case, Figure 2 shows that each readdir results in a READDIR
    sent to the server, and that the attributes it returns refresh what a
    following stat observes.  The set of entries returned is unchanged
    between calls; only the attribute value differs.  The client may
    still cache other information, provided the externally observable
-   behavior is equivalent to retrieving directory-entry metadata from
-   the server on each READDIR.
+   behavior is equivalent to retrieving dirent metadata from the server
+   on each READDIR.
 
 6.3.  Discussion
 
@@ -547,7 +565,7 @@ Table of Contents
    typical NFSv4.2 client cache lifetimes can track, while remaining
    compatible with existing NFSv4.2 semantics.
 
-8.  XDR for Uncacheable Dirents Attribute
+8.  XDR for the Uncacheable Dirent Metadata Attribute
 
    ///
    /// typedef bool            fattr4_uncacheable_dirent_metadata;
@@ -587,11 +605,10 @@ Table of Contents
 10.  Security Considerations
 
    This attribute is not a security mechanism.  It addresses correctness
-   of client-side caching when client-cached directory-entry metadata
-   can become stale relative to the current state of the directory at
-   the server.  It does not change NFSv4.2 authentication or
-   authorization semantics, and it does not impose access controls on
-   the entries it describes.
+   of client-side caching when client-cached dirent metadata can become
+   stale relative to the current state of the directory at the server.
+   It does not change NFSv4.2 authentication or authorization semantics,
+   and it does not impose access controls on the entries it describes.
 
    Authorization to set or modify the fattr4_uncacheable_dirent_metadata
    attribute is governed by existing NFSv4.2 authorization mechanisms.
@@ -603,19 +620,19 @@ Table of Contents
    of all honoring clients, servers should consider the implications of
    allowing unprivileged users to set or clear it.  Setting the
    attribute on a directory forces honoring clients to abandon READDIR
-   caching and refetch directory-entry metadata on every enumeration,
-   which can increase load on the server and on other clients.  A server
-   MAY restrict modification of the attribute based on administrative
+   caching and refetch dirent metadata on every enumeration, which can
+   increase load on the server and on other clients.  A server MAY
+   restrict modification of the attribute based on administrative
    configuration, export policy, or ownership.
 
    If the client supports Labeled NFS (see [RFC7204] for background),
    the client MUST locally enforce the MAC security policies defined by
    NFSv4.2 ([RFC7862], Section 9).  This obligation is independent of
-   whether directory-entry metadata is cached or refetched.
+   whether dirent metadata is cached or refetched.
 
    The uncacheable dirent metadata attribute allows servers to indicate
-   that directory-entry metadata should not be assumed to remain valid
-   beyond the READDIR that produced it.
+   that dirent metadata should not be assumed to remain valid beyond the
+   READDIR that produced it.
 
 11.  IANA Considerations
 
