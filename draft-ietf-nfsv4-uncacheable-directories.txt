@@ -4,8 +4,8 @@
 
 Network File System Version 4                                  T. Haynes
 Internet-Draft                                               Hammerspace
-Intended status: Standards Track                          18 August 2026
-Expires: 19 February 2027
+Intended status: Standards Track                          19 August 2026
+Expires: 20 February 2027
 
 
        Adding an Uncacheable Dirent Metadata Attribute to NFSv4.2
@@ -54,7 +54,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 19 February 2027.
+   This Internet-Draft will expire on 20 February 2027.
 
 Copyright Notice
 
@@ -169,9 +169,11 @@ Table of Contents
 
 3.  Definitions
 
-   dirent  A directory entry returned by READDIR -- the (name, file
-      handle) pair that names a file or subdirectory within a directory.
-      A dirent itself does not include the file attributes returned
+   dirent  A directory entry -- the (name, fileid) pair that names a
+      file or subdirectory within a directory.  This is what a client
+      maintains for an entry, whatever a given READDIR response carries
+      on the wire; it is the pair POSIX exposes as d_name and d_ino.  A
+      dirent itself does not include the file attributes returned
       alongside it.
 
    dirent metadata  The file attributes (size, mtime, ctime, atime,
@@ -185,11 +187,14 @@ Table of Contents
       directory's cache-coherence semantics.
 
    dirent caching  A client-side cache of the dirents themselves -- the
-      (name, file handle) pairs -- used to avoid repeated READDIR
-      traffic.  Whether such a cache remains valid is governed by the
-      directory's change attribute: the directory changes when an entry
-      is created, removed, or renamed.  Nothing in this document
-      constrains dirent caching.
+      (name, fileid) pairs -- used to avoid repeated READDIR traffic.
+      Whether such a cache remains valid is governed by the directory's
+      change attribute: the directory changes when an entry is created,
+      removed, or renamed, and a fileid is stable for as long as its
+      entry names the same object.  A fileid is therefore cached with
+      the name rather than with the file attributes: writes to a file
+      change its size and timestamps without touching either the name or
+      the fileid.  Nothing in this document constrains dirent caching.
 
    dirent metadata caching  A client-side cache of the dirent metadata
       returned alongside those entries, used to avoid repeated GETATTR
