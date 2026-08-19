@@ -136,9 +136,11 @@ than from a local cache.
 
 dirent
 
-: A directory entry returned by READDIR -- the (name, file handle)
-pair that names a file or subdirectory within a directory.  A dirent
-itself does not include the file attributes returned alongside it.
+: A directory entry -- the (name, fileid) pair that names a file or
+subdirectory within a directory.  This is what a client maintains for
+an entry, whatever a given READDIR response carries on the wire; it is
+the pair POSIX exposes as d_name and d_ino.  A dirent itself does not
+include the file attributes returned alongside it.
 
 dirent metadata
 
@@ -153,11 +155,15 @@ inherit the directory's cache-coherence semantics.
 
 dirent caching
 
-: A client-side cache of the dirents themselves -- the (name, file
-handle) pairs -- used to avoid repeated READDIR traffic.  Whether such
-a cache remains valid is governed by the directory's change attribute:
-the directory changes when an entry is created, removed, or renamed.
-Nothing in this document constrains dirent caching.
+: A client-side cache of the dirents themselves -- the (name, fileid)
+pairs -- used to avoid repeated READDIR traffic.  Whether such a cache
+remains valid is governed by the directory's change attribute: the
+directory changes when an entry is created, removed, or renamed, and a
+fileid is stable for as long as its entry names the same object.  A
+fileid is therefore cached with the name rather than with the file
+attributes: writes to a file change its size and timestamps without
+touching either the name or the fileid.  Nothing in this document
+constrains dirent caching.
 
 dirent metadata caching
 
