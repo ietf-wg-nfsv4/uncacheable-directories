@@ -34,16 +34,16 @@ informative:
 
 Network File System version 4.2 (NFSv4.2) clients may cache the
 file attributes returned by READDIR alongside each directory
-entry.  This caching is inherently best-effort: those attributes
-belong to the underlying files and change when the files are
-written, which the directory's change attribute does not track.
-In some deployments the rate of file writes by other clients
-makes such caching produce incorrect size and timestamp values
-often enough to be a deployment problem.  This document introduces
-an uncacheable dirent metadata attribute for NFSv4.2 that allows
-a server to identify a directory for which an honoring client is
-required to retrieve dirent metadata from the server on
-each READDIR rather than serving the response from a local cache.
+entry.  Such a cache is not invalidated by the directory's change
+attribute, which reflects changes to the directory and its entries
+but not writes to the files those entries name, so it can become
+stale when another client changes one of those files.  In some
+deployments this produces incorrect size and timestamp values often
+enough to be a deployment problem.  This document introduces an
+uncacheable dirent metadata attribute for NFSv4.2 that allows a
+server to identify a directory for which an honoring client goes to
+the server for each enumeration, and does not report an entry's
+attributes from a value it held before that READDIR.
 
 --- note_Note_to_Readers
 
