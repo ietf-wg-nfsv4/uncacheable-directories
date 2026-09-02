@@ -144,14 +144,15 @@ include the file attributes returned alongside it.
 
 dirent metadata
 
-: The file attributes (size, mtime, ctime, atime, mode, owner, etc.)
-returned in a READDIR response alongside each dirent.  These attributes
-belong to the underlying file object, not to the directory; they
-change when the underlying file is written, which is independent of
-the directory's change attribute.  The term "dirent metadata" in this
-document is a naming convenience for "the file attributes that arrive
-in a READDIR response"; it does not assert that those attributes
-inherit the directory's cache-coherence semantics.
+: The file attributes (size, time_modify, time_metadata,
+time_access, mode, owner, etc.) returned in a READDIR response
+alongside each dirent.  These attributes belong to the underlying file
+object, not to the directory; they change when the underlying file is
+written, which is independent of the directory's change attribute.
+The term "dirent metadata" in this document is a naming convenience
+for "the file attributes that arrive in a READDIR response"; it does
+not assert that those attributes inherit the directory's
+cache-coherence semantics.
 
 dirent caching
 
