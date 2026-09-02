@@ -240,6 +240,19 @@ is supported for a given directory by examining the supported_attrs
 attribute for that directory's filesystem or by probing support using
 the procedures described in {{RFC8178}}.
 
+A change to the attribute while a directory is in use may not be
+reflected in client behavior immediately.  A client that has cached the
+directory's attributes MAY continue to behave as it did before the
+change and is not required to act on a value it has not yet observed.
+Two ordinary mechanisms bound that delay: the client's cached
+attributes for the directory expire under the upper time boundary
+described in {{RFC8881}} Section 10.6, and a client revalidating a
+cached directory inspects the directory's change attribute
+({{RFC8881}} Section 10.8.2), which moves when a server sets or clears
+this one.  Clients are expected to observe the change through those
+mechanisms and to apply the rule in {{sec_dirents}} to subsequent
+enumerations.
+
 The uncacheable dirent metadata attribute governs the client's
 caching of READDIR responses for the directory.  It does NOT govern:
 
@@ -648,7 +661,7 @@ Trond Myklebust, Mike Snitzer, Jon Flynn, Keith Mannthey, and Thomas
 Haynes all worked on the prototype at Hammerspace.
 
 Rick Macklem, Chuck Lever, Dave Noveck, Sorin Faibish, Christoph
-Hellwig, and Jeff Layton reviewed the document.
+Hellwig, Jeff Layton, and Jamie Koehl reviewed the document.
 
 Chris Inacio, Brian Pawlowski, Chuck Lever, Zahed Sarker, and
 Gorry Fairhurst helped guide this process.
