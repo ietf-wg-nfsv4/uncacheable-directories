@@ -162,8 +162,11 @@ directory changes when an entry is created, removed, or renamed, and a
 fileid is stable for as long as its entry names the same object.  A
 fileid is therefore cached with the name rather than with the file
 attributes: writes to a file change its size and timestamps without
-touching either the name or the fileid.  Nothing in this document
-constrains dirent caching.
+touching either the name or the fileid.  This document does not change
+what a client may hold in this cache or how it validates it; for a
+directory on which the attribute is set, however, each enumeration is
+satisfied by a READDIR, so for that directory the cache no longer
+avoids that traffic.
 
 dirent metadata caching
 
@@ -214,9 +217,9 @@ attribute for NFSv4.2, in the attribute-category sense of {{RFC8881}}
 Section 5.2 and {{RFC7862}} Section 12 rather than the BCP 14 sense; a
 server is not required to support it.  If both the client and the
 server support this attribute, and the attribute is set on a
-directory, the client MUST retrieve dirent metadata from
-the server on each READDIR rather than serving the response from
-a local cache.
+directory, an honoring client goes to the server for each enumeration
+and does not report an entry's attributes from a value it held before
+that READDIR.  {{sec_dirents}} states the requirement normatively.
 
 Because the attribute governs a READDIR rather than the objects the
 entries name, it makes no claim about those objects.  A file reached
@@ -231,11 +234,6 @@ time-limited caches that revalidate against the server on each
 READDIR, provided that the externally visible behavior is
 equivalent to retrieving dirent metadata from the
 server on each READDIR.
-
-Allowing clients to set this attribute provides a portable mechanism
-to request that dirent metadata not be cached, without
-requiring changes to application behavior or out-of-band administrative
-configuration.
 
 A client can determine whether the uncacheable dirent metadata attribute
 is supported for a given directory by examining the supported_attrs
@@ -332,13 +330,17 @@ attribute that applies to directory objects.
 Authorization to query or modify this attribute is governed by
 existing NFSv4.2 authorization mechanisms.
 
-Because the attribute applies only to directory objects, a server that
+The attribute applies only to directory objects.  A server that
 receives a GETATTR requesting fattr4_uncacheable_dirent_metadata on an
-object that is not a directory MUST NOT return the attribute value and
-MUST NOT set the attribute bit in the result bitmap, as specified for
-unsupported attributes in {{RFC8881}} Section 18.7.3.  A server that
-receives a SETATTR requesting fattr4_uncacheable_dirent_metadata on an
-object that is not a directory MUST return NFS4ERR_ATTRNOTSUPP.
+object that is not a directory MUST return FALSE: support for an
+attribute is advertised per file system ({{RFC8881}} Section 5.8.1.1),
+so a server that supports this attribute supports it for every object
+in that file system and owes a value for each ({{RFC8881}} Section
+18.7.3).  As with rawdev ({{RFC8881}} Section 5.8.2.31), the value
+SHOULD NOT be considered useful for an object the attribute does not
+describe.  A server that receives a SETATTR requesting
+fattr4_uncacheable_dirent_metadata on an object that is not a directory
+MUST return NFS4ERR_WRONG_TYPE ({{RFC8881}} Section 15.1.2.9).
 
 This attribute is set per directory.  This document does not define
 propagation of the attribute to subdirectories created within a
@@ -346,17 +348,29 @@ directory on which it is set; any such inheritance is a matter of
 local server policy.
 
 If a directory object has the uncacheable dirent metadata attribute
-set, the client MUST retrieve dirent metadata from the
-server on each readdir rather than serving the response from a
-local cache; that is, each application-level directory read is
-satisfied by issuing READDIR to the server rather than from cached
-results.  This ensures that the returned metadata reflects the
-current state of the directory as determined by the server.  For such
-a directory, a client MUST NOT assume that dirent metadata is
-valid beyond the readdir that produced it.  Entries and metadata
-retrieved during a single enumeration MAY be retained until that
-enumeration completes, consistent with the snapshot requirement of
-{{RFC8881}} Section 10.8.2.
+set, an honoring client MUST NOT satisfy a readdir of that directory
+from READDIR results obtained during a different enumeration, and MUST
+NOT report, for an entry, a value of a dirent metadata attribute that
+it received before the READDIR that most recently returned that entry.
+An honoring client therefore either names the attributes it will report
+in that READDIR's attr_request, or obtains them afterwards; a value it
+held beforehand is not usable for that entry.
+
+In this document a readdir is a directory-read request made by an
+application, however the client's interface batches entries, and an
+enumeration is one pass over a directory: the readdirs of that pass and
+the READDIRs the client issues to satisfy them.  A READDIR ordinarily
+supplies enough entries for many readdirs, so the requirement above is
+scoped to the enumeration a readdir belongs to and not to a READDIR per
+readdir.
+
+Entries and metadata carried by the READDIRs of a single enumeration
+MAY be retained until that enumeration completes.  {{RFC8881}} Section
+10.8.2 requires such a cache to be a consistent snapshot of directory
+contents, validated by the directory's change attribute; because that
+attribute does not move when a file the directory names is written, it
+provides no corresponding guarantee for the entries' file attributes,
+which are as of the READDIR that carried them.
 
 The uncacheable dirent metadata attribute does not modify the
 semantics of the NFSv4.2 change attribute.  Clients MUST continue to
@@ -389,16 +403,18 @@ attribute is set on that directory.
 
 This example illustrates the difference in client-visible behavior when
 dirent metadata caching is enabled versus when the uncacheable
-dirent metadata attribute is set on a directory.  In both scenarios,
-the set of entries in the directory does not change between the two
-calls; an attribute value of one entry is updated at the server
-between calls.  The difference is whether the second call observes
-the updated attribute value.
+dirent metadata attribute is set on a directory.  In both scenarios
+each readdir("/dir") is a separate enumeration -- the application opens
+the directory, reads it to end-of-file and closes it, and opens it
+again for the second.  The set of entries does not change between the
+two; an attribute value of one entry is updated at the server between
+them.  The difference is whether the stat after the second readdir
+observes the updated value.
 
 ## Classic Directory Enumeration (Dirent Metadata Cached)
 
-In this scenario, the client caches dirent metadata obtained
-from the server and reuses it for the second readdir.
+In this scenario, the client caches dirent metadata obtained from the
+server and reuses it after a second readdir.
 
 ~~~
 Application             NFSv4.2 Client        NFSv4.2 Server
@@ -411,40 +427,38 @@ readdir("/dir")
    |                     entries:
    |                       a (size=100)
    |                       b (size=200)
-   |                       c (size=300)
    |<--------------------<------------------------
-   |<-- names a, b, c
+   |<-- names a, b
                         (attributes retained per
                          entry, bounded by the
                          attribute cache lifetime)
+
+                                        (concurrent writer extends
+                                         a from size=100 to
+                                         size=500)
+
+readdir("/dir")
+   |                     (served from the cached
+   |                      READDIR result; no
+   |                      network traffic)
+   |<-- names a, b
 
 stat("/dir/a")
    |                     (served from the retained
    |                      READDIR attributes)
    |<-- size=100
-
-                                            (concurrent writer extends
-                                             a from size=100 to
-                                             size=500)
-
-stat("/dir/a")
-   |                     (no network traffic; still
-   |                      within the cache lifetime)
-   |<-- size=100
 ~~~
 {: #fig-cached-dirents title="Dirent Metadata Cached"}
 
-In this case, {{fig-cached-dirents}} shows that the attributes
-retrieved by the READDIR are retained and reused to satisfy a
-later stat of entry a.  readdir itself yields only names; the
-size the application observes comes from the retained READDIR
-attributes.  The second stat reflects entry a's size as it was
-at the time of the READDIR, not the update that occurred at the
-server between the two calls.  This behavior maximizes
-performance and is what {{RFC8881}} Section 10.6 permits, but
-for the duration of the cache lifetime it can result in
-applications observing dirent attribute values that do not
-reflect the current state of the server.
+In this case, {{fig-cached-dirents}} shows a second readdir satisfied
+from the cached result of the first.  No READDIR reaches the server, so
+nothing refreshes what the client holds for entry a, and the stat that
+follows reports the size as it was at the time of the first READDIR --
+not the update the server took between the two.  This behavior
+maximizes performance and is what {{RFC8881}} Sections 10.6 and 10.8.2
+permit, but for the duration of the cache lifetime it can result in
+applications observing dirent attribute values that do not reflect the
+current state of the files the entries name.
 
 ## Directory Enumeration With Uncacheable Dirent Metadata
 
@@ -463,43 +477,36 @@ readdir("/dir")
    |                     entries:
    |                       a (size=100)
    |                       b (size=200)
-   |                       c (size=300)
    |<--------------------<------------------------
-   |<-- names a, b, c
+   |<-- names a, b
 
-stat("/dir/a")
-   |<-- size=100
-
-                                            (concurrent writer extends
-                                             a from size=100 to
-                                             size=500)
+                                        (concurrent writer extends
+                                         a from size=100 to
+                                         size=500)
 
 readdir("/dir")
    |
    |                     READDIR, size and
    |                     time_modify requested
-   |                     (cache not consulted)
+   |                     (cached result not used)
    |-------------------->------------------------>
    |                     entries:
    |                       a (size=500)
    |                       b (size=200)
-   |                       c (size=300)
    |<--------------------<------------------------
-   |<-- names a, b, c
+   |<-- names a, b
 
 stat("/dir/a")
    |<-- size=500
 ~~~
 {: #fig-uncached-dirents title="Dirent Metadata Not Cached"}
 
-In this case, {{fig-uncached-dirents}} shows that each readdir
-results in a READDIR sent to the server, and that the attributes
-it returns refresh what a following stat observes.  The set of
-entries returned is unchanged between calls; only the attribute
-value differs.  The client may still cache other information,
-provided the externally observable behavior is equivalent to
-retrieving dirent metadata from the server on each
-READDIR.
+In this case, {{fig-uncached-dirents}} shows the second readdir going
+to the server, and the stat that follows reporting what that READDIR
+returned.  The set of entries is unchanged between the two calls; only
+the attribute value differs.  The client may still cache other
+information, provided it reports no value for these entries that it
+received before the READDIR that most recently returned them.
 
 ## Discussion
 
@@ -613,10 +620,11 @@ increase load on the server and on other clients.  A server MAY
 restrict modification of the attribute based on administrative
 configuration, export policy, or ownership.
 
-If the client supports Labeled NFS (see {{RFC7204}} for background),
-the client MUST locally enforce the MAC security policies defined by
-NFSv4.2 ({{RFC7862}}, Section 9).  This obligation is independent of
-whether dirent metadata is cached or refetched.
+This attribute does not change the semantics of sec_label or the
+enforcement of MAC security policies.  A client's obligations under
+Labeled NFS (see {{RFC7204}} for background, and {{RFC7862}} Section 9
+for the NFSv4.2 mechanism) are the same whether dirent metadata is
+refetched or served from a cache.
 
 The uncacheable dirent metadata attribute allows servers to indicate
 that dirent metadata should not be assumed to remain valid
