@@ -223,26 +223,27 @@ and error handling as defined in {{RFC8881}} and {{RFC7862}}.
 
 # Caching of Dirent Metadata
 
-The uncacheable dirent metadata attribute constrains what a READDIR on
-a particular directory does: it directs an honoring client to fetch the
-entries' file attributes from the server rather than serve them from a
-local cache.  It adds no constraint on the objects the entries name:
-an honoring client may continue to hold the dirents themselves, validated by the
+The uncacheable dirent metadata attribute constrains what an honoring
+client may report for the entries of a particular directory.  If both
+the client and the server support this attribute, and the attribute is
+set on a directory, an honoring client goes to the server for each
+enumeration and does not report an entry's attributes from a value it
+held before that READDIR.  {{sec_dirents}} states the requirement
+normatively.
+
+It adds no constraint on the objects the entries name: an honoring
+client may continue to hold the dirents themselves, validated by the
 directory's change attribute as it would be for any other directory.
 Clients typically hold a single cache of a file object's attributes,
-populated by whichever operation last returned them; this attribute
-constrains what a client may report for an entry, not how it structures
-that cache.
-A server sets it on the directories where it knows the
-staleness of cached READDIR attributes is particularly likely and
-particularly damaging.  It is a RECOMMENDED
-attribute for NFSv4.2, in the attribute-category sense of {{RFC8881}}
-Section 5.2 and {{RFC7862}} Section 12 rather than the BCP 14 sense; a
-server is not required to support it.  If both the client and the
-server support this attribute, and the attribute is set on a
-directory, an honoring client goes to the server for each enumeration
-and does not report an entry's attributes from a value it held before
-that READDIR.  {{sec_dirents}} states the requirement normatively.
+populated by whichever operation last returned them; the requirement is
+on what the client reports, not on how it structures that cache.
+
+A server sets it on the directories where it knows the staleness of
+cached READDIR attributes is particularly likely and particularly
+damaging.  It is a RECOMMENDED attribute for NFSv4.2, in the
+attribute-category sense of {{RFC8881}} Section 5.2 and {{RFC7862}}
+Section 12 rather than the BCP 14 sense; a server is not required to
+support it.
 
 Because the attribute governs what an honoring client reports for the
 entries of one directory, rather than the objects those entries name,
