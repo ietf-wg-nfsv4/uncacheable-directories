@@ -39,7 +39,7 @@ attribute, which reflects changes to the directory and its entries
 but not writes to the files those entries name, so it can become
 stale when another client changes one of those files.  In some
 deployments this produces incorrect size and timestamp values often
-enough to be a deployment problem.  This document introduces an
+enough to be a problem.  This document introduces an
 uncacheable dirent metadata attribute for NFSv4.2 that allows a
 server to identify a directory for which an honoring client goes to
 the server for each enumeration, and does not report an entry's
@@ -68,8 +68,8 @@ follow-on GETATTR traffic for entries the client has already seen.
 This caching is inherently best-effort -- writes to the underlying
 files can change those attributes at any time, and the directory's
 change attribute does not track such writes.  In some deployments
-the cost of that staleness is high enough to be a deployment
-problem; the conditions are described in {{deployment-motivation}}.
+the cost of that staleness is high enough to be a problem; the
+conditions are described in {{deployment-motivation}}.
 
 In this document, the term directory is used to describe the
 context in which directory entries are retrieved.  The uncacheable
@@ -121,10 +121,10 @@ the directory is enumerated; mount options shorten attribute cache
 lifetimes out of band and per client, not per directory.
 
 The staleness has correctness consequences, not merely cosmetic ones.
-An incremental backup or an rsync scan that decides what to copy from
-the size and time_modify reported for each entry will silently skip a
-file whose cached metadata predates a concurrent write, leaving data
-uncopied.  This attribute lets a server mark the directories where that
+An incremental backup or a directory-tree synchronization pass that
+decides what to copy from the size and time_modify reported for each
+entry will silently skip a file whose cached metadata predates a
+concurrent write, leaving data uncopied.  This attribute lets a server mark the directories where that
 outcome is likely, so that an honoring client fetches current metadata
 on each enumeration.
 
