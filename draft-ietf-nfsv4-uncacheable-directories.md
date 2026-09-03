@@ -375,7 +375,16 @@ If a directory object has the uncacheable dirent metadata attribute
 set, an honoring client MUST NOT satisfy a readdir of that directory
 from READDIR results obtained during a different enumeration, and MUST
 NOT report, for an entry, a value of a dirent metadata attribute that
-it received before the READDIR that most recently returned that entry.
+it received before the READDIR that most recently returned that entry,
+whatever operation supplied that value.
+
+A client holding an OPEN_DELEGATE_WRITE delegation on a file the
+directory names may hold a size or change value more current than the
+server's, which the server obtains from it by CB_GETATTR ({{RFC8881}}
+Section 10.4.3).  The requirement above is directed at values older
+than what the server would return, and does not require such a client
+to replace its own values with older ones.
+
 An honoring client therefore either names the attributes it will report
 in that READDIR's attr_request, or obtains them afterwards; a value it
 held beforehand is not usable for that entry.  An honoring client SHOULD
