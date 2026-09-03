@@ -137,6 +137,20 @@ than from a local cache.
 
 # Definitions
 
+readdir
+
+: A directory-read request made by an application, however the client's
+interface batches entries.  Written in lower case throughout this
+document to distinguish it from READDIR, the NFSv4.2 operation
+({{RFC8881}} Section 18.23).
+
+enumeration
+
+: One pass over a directory: the readdirs of that pass and the READDIRs
+the client issues to satisfy them.  A READDIR ordinarily supplies enough
+entries for many readdirs, so a requirement scoped to an enumeration
+does not imply a READDIR per readdir.
+
 dirent
 
 : A directory entry -- the (name, fileid) pair that names a file or
@@ -391,14 +405,6 @@ held beforehand is not usable for that entry.  An honoring client SHOULD
 name them in attr_request: obtaining them afterwards costs one GETATTR
 per entry, which is the traffic the deployments of
 {{deployment-motivation}} use this attribute to avoid.
-
-In this document a readdir is a directory-read request made by an
-application, however the client's interface batches entries, and an
-enumeration is one pass over a directory: the readdirs of that pass and
-the READDIRs the client issues to satisfy them.  A READDIR ordinarily
-supplies enough entries for many readdirs, so the requirement above is
-scoped to the enumeration a readdir belongs to and not to a READDIR per
-readdir.
 
 Entries carried by the READDIRs of a single enumeration MAY be
 retained until that enumeration completes, and their metadata MAY be
