@@ -14,7 +14,7 @@ attribute, which reflects changes to the directory and its entries
 but not writes to the files those entries name, so it can become
 stale when another client changes one of those files.  In some
 deployments this produces incorrect size and timestamp values often
-enough to be a deployment problem.  This document introduces an
+enough to be a problem.  This document introduces an
 uncacheable dirent metadata attribute for NFSv4.2 that allows a
 server to identify a directory for which an honoring client goes to
 the server for each enumeration, and does not report an entry's
@@ -32,11 +32,11 @@ attributes from a value it held before that READDIR.
     Jinja2 3.1.6
     lxml 6.1.1
     natsort 8.4.0
-    platformdirs 4.11.5
+    platformdirs 4.11.7
     pycountry 24.6.1
     PyYAML 6.0.3
     requests 2.33.1
-    wcwidth 0.8.2
+    wcwidth 0.8.3
 -->
 <link href="draft-ietf-nfsv4-uncacheable-directories.xml" rel="alternate" type="application/rfc+xml">
 <link href="#copyright" rel="license">
@@ -1056,7 +1056,7 @@ svg {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Haynes</td>
-<td class="center">Expires 6 March 2027</td>
+<td class="center">Expires 7 March 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1069,12 +1069,12 @@ svg {
 <dd class="internet-draft">draft-ietf-nfsv4-uncacheable-directories-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-09-02" class="published">2 September 2026</time>
+<time datetime="2026-09-03" class="published">3 September 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-03-06">6 March 2027</time></dd>
+<dd class="expires"><time datetime="2027-03-07">7 March 2027</time></dd>
 <dt class="label-authors">Author:</dt>
 <dd class="authors">
 <div class="author">
@@ -1094,7 +1094,7 @@ attribute, which reflects changes to the directory and its entries
 but not writes to the files those entries name, so it can become
 stale when another client changes one of those files.  In some
 deployments this produces incorrect size and timestamp values often
-enough to be a deployment problem.  This document introduces an
+enough to be a problem.  This document introduces an
 uncacheable dirent metadata attribute for NFSv4.2 that allows a
 server to identify a directory for which an honoring client goes to
 the server for each enumeration, and does not report an entry's
@@ -1132,7 +1132,7 @@ code and issues list for this draft can be found at
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 6 March 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 7 March 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1242,14 +1242,15 @@ follow-on GETATTR traffic for entries the client has already seen.
 This caching is inherently best-effort -- writes to the underlying
 files can change those attributes at any time, and the directory's
 change attribute does not track such writes.  In some deployments
-the cost of that staleness is high enough to be a deployment
-problem; the conditions are described in <a href="#deployment-motivation" class="auto internal xref">Section 2</a>.<a href="#section-1-1" class="pilcrow">¶</a></p>
+the cost of that staleness is high enough to be a problem; the
+conditions are described in <a href="#deployment-motivation" class="auto internal xref">Section 2</a>.<a href="#section-1-1" class="pilcrow">¶</a></p>
 <p id="section-1-2">In this document, the term directory is used to describe the
 context in which directory entries are retrieved.  The uncacheable
-dirent metadata attribute applies to the caching of dirent
-metadata -- the file object attributes, such as size and timestamps,
-returned alongside each entry.  It does not prohibit caching of the
-directory object itself, nor does it affect caching of file data.<a href="#section-1-2" class="pilcrow">¶</a></p>
+dirent metadata attribute applies to dirent metadata -- the file
+object attributes, such as size and timestamps, returned alongside each
+entry -- and to what an honoring client reports of it.  It does not
+prohibit caching of the directory object itself, nor does it affect
+caching of file data.<a href="#section-1-2" class="pilcrow">¶</a></p>
 <p id="section-1-3">When this best-effort caching returns stale size and timestamp
 information for concurrently modified files, it also undermines the
 effectiveness of uncacheable file data semantics
@@ -1257,9 +1258,10 @@ effectiveness of uncacheable file data semantics
 applications can observe inconsistent metadata and data views even
 when file data caching is disabled.<a href="#section-1-3" class="pilcrow">¶</a></p>
 <p id="section-1-4">This document introduces the uncacheable dirent metadata attribute
-to NFSv4.2 to allow servers to advise clients that caching of
-dirent metadata is unsuitable.  Using the process detailed
-in <span>[<a href="#RFC8178" class="cite xref">RFC8178</a>]</span>, the revisions in this document become an extension
+to NFSv4.2 to allow servers to identify the directories for which
+reporting dirent metadata a client held beforehand is unsuitable.
+Using the process detailed in <span>[<a href="#RFC8178" class="cite xref">RFC8178</a>]</span>, the revisions in this
+document become an extension
 of NFSv4.2 <span>[<a href="#RFC7862" class="cite xref">RFC7862</a>]</span>.  They are built on top of the external data
 representation (XDR) <span>[<a href="#RFC4506" class="cite xref">RFC4506</a>]</span> generated from <span>[<a href="#RFC7863" class="cite xref">RFC7863</a>]</span>.<a href="#section-1-4" class="pilcrow">¶</a></p>
 </section>
@@ -1287,14 +1289,15 @@ from thousands of compute nodes, any nonzero cache lifetime yields stale
 size and time_modify for most entries most of the time, and revalidating
 each entry individually costs one GETATTR per entry -- the very traffic
 that requesting attributes in READDIR exists to avoid.  NFSv4.2 gives a
-server no in-band way to tell a client that the acceptable attribute
-cache lifetime for the children of a particular directory is zero; mount
-options express this out of band and per client, not per directory.<a href="#section-2-2" class="pilcrow">¶</a></p>
+server no in-band way to tell a client that the file attributes it holds
+for the children of a particular directory should be refreshed each time
+the directory is enumerated; mount options shorten attribute cache
+lifetimes out of band and per client, not per directory.<a href="#section-2-2" class="pilcrow">¶</a></p>
 <p id="section-2-3">The staleness has correctness consequences, not merely cosmetic ones.
-An incremental backup or an rsync scan that decides what to copy from
-the size and time_modify reported for each entry will silently skip a
-file whose cached metadata predates a concurrent write, leaving data
-uncopied.  This attribute lets a server mark the directories where that
+An incremental backup or a directory-tree synchronization pass that
+decides what to copy from the size and time_modify reported for each
+entry will silently skip a file whose cached metadata predates a
+concurrent write, leaving data uncopied.  This attribute lets a server mark the directories where that
 outcome is likely, so that an honoring client fetches current metadata
 on each enumeration.<a href="#section-2-3" class="pilcrow">¶</a></p>
 <p id="section-2-4">The fattr4_uncacheable_dirent_metadata attribute is the server's
@@ -1311,31 +1314,49 @@ than from a local cache.<a href="#section-2-4" class="pilcrow">¶</a></p>
 <a href="#section-3" class="section-number selfRef">3. </a><a href="#name-definitions" class="section-name selfRef">Definitions</a>
       </h2>
 <span class="break"></span><dl class="dlParallel" id="section-3-1">
-        <dt id="section-3-1.1">dirent</dt>
+        <dt id="section-3-1.1">readdir</dt>
         <dd style="margin-left: 1.5em" id="section-3-1.2">
-          <p id="section-3-1.2.1">A directory entry -- the (name, fileid) pair that names a file or
+          <p id="section-3-1.2.1">A directory-read request made by an application, however the client's
+interface batches entries.  Written in lower case throughout this
+document to distinguish it from READDIR, the NFSv4.2 operation
+(<span>[<a href="#RFC8881" class="cite xref">RFC8881</a>]</span> Section 18.23).<a href="#section-3-1.2.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-3-1.3">enumeration</dt>
+        <dd style="margin-left: 1.5em" id="section-3-1.4">
+          <p id="section-3-1.4.1">One pass over a directory: the readdirs of that pass and the READDIRs
+the client issues to satisfy them.  A READDIR ordinarily supplies enough
+entries for many readdirs, so a requirement scoped to an enumeration
+does not imply a READDIR per readdir.<a href="#section-3-1.4.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-3-1.5">dirent</dt>
+        <dd style="margin-left: 1.5em" id="section-3-1.6">
+          <p id="section-3-1.6.1">A directory entry -- the (name, fileid) pair that names a file or
 subdirectory within a directory.  This is what a client maintains for
 an entry, whatever a given READDIR response carries on the wire; it is
 the pair POSIX exposes as d_name and d_ino.  A dirent itself does not
-include the file attributes returned alongside it.<a href="#section-3-1.2.1" class="pilcrow">¶</a></p>
+include the file attributes returned alongside it.<a href="#section-3-1.6.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
-<dt id="section-3-1.3">dirent metadata</dt>
-        <dd style="margin-left: 1.5em" id="section-3-1.4">
-          <p id="section-3-1.4.1">The file attributes (size, time_modify, time_metadata,
-time_access, mode, owner, etc.) returned in a READDIR response
-alongside each dirent.  These attributes belong to the underlying file
+<dt id="section-3-1.7">dirent metadata</dt>
+        <dd style="margin-left: 1.5em" id="section-3-1.8">
+          <p id="section-3-1.8.1">The file attributes (size, time_modify, time_metadata,
+time_access, mode, owner, etc.) that a READDIR response can return
+alongside each dirent, whether or not a particular response carried
+them.  These attributes belong to the underlying file
 object, not to the directory; they change when the underlying file is
 written, which is independent of the directory's change attribute.
 The term "dirent metadata" in this document is a naming convenience
-for "the file attributes that arrive in a READDIR response"; it does
-not assert that those attributes inherit the directory's
-cache-coherence semantics.<a href="#section-3-1.4.1" class="pilcrow">¶</a></p>
+for "the file attributes a READDIR response carries alongside an
+entry"; it names that class of attributes, not the subset a given
+response happened to return, and it does not assert that those
+attributes inherit the directory's cache-coherence semantics.<a href="#section-3-1.8.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
-<dt id="section-3-1.5">dirent caching</dt>
-        <dd style="margin-left: 1.5em" id="section-3-1.6">
-          <p id="section-3-1.6.1">A client-side cache of the dirents themselves -- the (name, fileid)
+<dt id="section-3-1.9">dirent caching</dt>
+        <dd style="margin-left: 1.5em" id="section-3-1.10">
+          <p id="section-3-1.10.1">A client-side cache of the dirents themselves -- the (name, fileid)
 pairs -- used to avoid repeated READDIR traffic.  Whether such a cache
 remains valid is governed by the directory's change attribute: the
 directory changes when an entry is created, removed, or renamed, and a
@@ -1346,34 +1367,36 @@ touching either the name or the fileid.  This document does not change
 what a client may hold in this cache or how it validates it; for a
 directory on which the attribute is set, however, each enumeration is
 satisfied by a READDIR, so for that directory the cache no longer
-avoids that traffic.<a href="#section-3-1.6.1" class="pilcrow">¶</a></p>
+avoids that traffic.<a href="#section-3-1.10.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
-<dt id="section-3-1.7">dirent metadata caching</dt>
-        <dd style="margin-left: 1.5em" id="section-3-1.8">
-          <p id="section-3-1.8.1">A client-side cache of the dirent metadata returned alongside those
+<dt id="section-3-1.11">dirent metadata caching</dt>
+        <dd style="margin-left: 1.5em" id="section-3-1.12">
+          <p id="section-3-1.12.1">A client-side cache of the dirent metadata returned alongside those
 entries, used to avoid repeated GETATTR traffic.  Because those file
 attributes are not invalidated by the directory's change attribute
 (only by writes to the underlying files), this caching is inherently
 best-effort and subject to staleness whenever the underlying files are
-modified.  This is the caching that the attribute defined in this
-document constrains.<a href="#section-3-1.8.1" class="pilcrow">¶</a></p>
+modified.  This is the caching whose results the attribute defined in
+this document constrains: for a directory on which the attribute is
+set, <a href="#sec_dirents" class="auto internal xref">Section 5.1</a> limits what an honoring client may report for an
+entry, however the client structures the cache the value comes from.<a href="#section-3-1.12.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
-<dt id="section-3-1.9">uncacheable dirent metadata attribute</dt>
-        <dd style="margin-left: 1.5em" id="section-3-1.10">
-          <p id="section-3-1.10.1">An NFSv4.2 file attribute that advises clients not to cache
-dirent metadata associated with file objects, such as
-size and timestamps.<a href="#section-3-1.10.1" class="pilcrow">¶</a></p>
+<dt id="section-3-1.13">uncacheable dirent metadata attribute</dt>
+        <dd style="margin-left: 1.5em" id="section-3-1.14">
+          <p id="section-3-1.14.1">An NFSv4.2 file attribute that advises clients not to report dirent
+metadata, such as size and timestamps, from a value held before the
+READDIR that most recently returned the entry it describes.<a href="#section-3-1.14.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
-<dt id="section-3-1.11">honoring client</dt>
-        <dd style="margin-left: 1.5em" id="section-3-1.12">
-          <p id="section-3-1.12.1">A client that implements this attribute and enforces the
+<dt id="section-3-1.15">honoring client</dt>
+        <dd style="margin-left: 1.5em" id="section-3-1.16">
+          <p id="section-3-1.16.1">A client that implements this attribute and enforces the
 always-refetch behavior it defines for a directory on which the
 attribute is set.  The attribute is advisory: a client that does not
 implement it, or that declines to enforce it, is non-honoring and may
-continue to cache dirent metadata.<a href="#section-3-1.12.1" class="pilcrow">¶</a></p>
+continue to report dirent metadata it held beforehand.<a href="#section-3-1.16.1" class="pilcrow">¶</a></p>
 </dd>
       <dd class="break"></dd>
 </dl>
@@ -1397,42 +1420,42 @@ appear in all capitals, as shown here.<a href="#section-4-1" class="pilcrow">¶<
       <h2 id="name-caching-of-dirent-metadata">
 <a href="#section-5" class="section-number selfRef">5. </a><a href="#name-caching-of-dirent-metadata" class="section-name selfRef">Caching of Dirent Metadata</a>
       </h2>
-<p id="section-5-1">The uncacheable dirent metadata attribute constrains what a READDIR on
-a particular directory does: it directs an honoring client to fetch the
-entries' file attributes from the server rather than serve them from a
-local cache.  It constrains dirent metadata caching only: an honoring
-client may continue to cache the dirents themselves, validated by the
-directory's change attribute as it would be for any other directory,
-and refetch only their metadata.  This matches how clients are
-typically built, with the dirent cache maintained separately from the
-attributes obtained for the objects the entries name.
-A server sets it on the directories where it knows the
-staleness of cached READDIR attributes is particularly likely and
-particularly damaging.  It is a <span class="bcp14">RECOMMENDED</span>
-attribute for NFSv4.2, in the attribute-category sense of <span>[<a href="#RFC8881" class="cite xref">RFC8881</a>]</span>
-Section 5.2 and <span>[<a href="#RFC7862" class="cite xref">RFC7862</a>]</span> Section 12 rather than the BCP 14 sense; a
-server is not required to support it.  If both the client and the
-server support this attribute, and the attribute is set on a
-directory, an honoring client goes to the server for each enumeration
-and does not report an entry's attributes from a value it held before
-that READDIR.  <a href="#sec_dirents" class="auto internal xref">Section 5.1</a> states the requirement normatively.<a href="#section-5-1" class="pilcrow">¶</a></p>
-<p id="section-5-2">Because the attribute governs a READDIR rather than the objects the
-entries name, it makes no claim about those objects.  A file reached
+<p id="section-5-1">The uncacheable dirent metadata attribute constrains what an honoring
+client may report for the entries of a particular directory.  If both
+the client and the server support this attribute, and the attribute is
+set on a directory, an honoring client goes to the server for each
+enumeration and does not report an entry's attributes from a value it
+held before that READDIR.  <a href="#sec_dirents" class="auto internal xref">Section 5.1</a> states the requirement
+normatively.<a href="#section-5-1" class="pilcrow">¶</a></p>
+<p id="section-5-2">It adds no constraint on the objects the entries name: an honoring
+client may continue to hold the dirents themselves, validated by the
+directory's change attribute as it would be for any other directory.
+Clients typically hold a single cache of a file object's attributes,
+populated by whichever operation last returned them; the requirement is
+on what the client reports, not on how it structures that cache.<a href="#section-5-2" class="pilcrow">¶</a></p>
+<p id="section-5-3">A server sets it on the directories where it knows the staleness of
+cached READDIR attributes is particularly likely and particularly
+damaging.  It is a <span class="bcp14">RECOMMENDED</span> attribute for NFSv4.2, in the
+attribute-category sense of <span>[<a href="#RFC8881" class="cite xref">RFC8881</a>]</span> Section 5.2 and <span>[<a href="#RFC7862" class="cite xref">RFC7862</a>]</span>
+Section 12 rather than the BCP 14 sense; a server is not required to
+support it.<a href="#section-5-3" class="pilcrow">¶</a></p>
+<p id="section-5-4">Because the attribute governs what an honoring client reports for the
+entries of one directory, rather than the objects those entries name,
+it makes no claim about those objects.  A file reached
 through a directory on which the attribute is not set is unaffected,
 including where the same file is linked into both a directory on which
-it is set and one on which it is not.<a href="#section-5-2" class="pilcrow">¶</a></p>
-<p id="section-5-3">This document specifies the required observable behavior rather
+it is set and one on which it is not.<a href="#section-5-4" class="pilcrow">¶</a></p>
+<p id="section-5-5">This document specifies the required observable behavior rather
 than mandating a particular internal implementation strategy.
 Clients <span class="bcp14">MAY</span> employ more sophisticated mechanisms, such as
 time-limited caches that revalidate against the server on each
-READDIR, provided that the externally visible behavior is
-equivalent to retrieving dirent metadata from the
-server on each READDIR.<a href="#section-5-3" class="pilcrow">¶</a></p>
-<p id="section-5-4">A client can determine whether the uncacheable dirent metadata attribute
+READDIR, provided that the externally visible behavior satisfies
+<a href="#sec_dirents" class="auto internal xref">Section 5.1</a>.<a href="#section-5-5" class="pilcrow">¶</a></p>
+<p id="section-5-6">A client can determine whether the uncacheable dirent metadata attribute
 is supported for a given directory by examining the supported_attrs
 attribute for that directory's filesystem or by probing support using
-the procedures described in <span>[<a href="#RFC8178" class="cite xref">RFC8178</a>]</span>.<a href="#section-5-4" class="pilcrow">¶</a></p>
-<p id="section-5-5">A change to the attribute while a directory is in use may not be
+the procedures described in <span>[<a href="#RFC8178" class="cite xref">RFC8178</a>]</span>.<a href="#section-5-6" class="pilcrow">¶</a></p>
+<p id="section-5-7">A change to the attribute while a directory is in use may not be
 reflected in client behavior immediately.  A client that has cached the
 directory's attributes <span class="bcp14">MAY</span> continue to behave as it did before the
 change and is not required to act on a value it has not yet observed.
@@ -1443,62 +1466,62 @@ cached directory inspects the directory's change attribute
 (<span>[<a href="#RFC8881" class="cite xref">RFC8881</a>]</span> Section 10.8.2), which moves when a server sets or clears
 this one.  Clients are expected to observe the change through those
 mechanisms and to apply the rule in <a href="#sec_dirents" class="auto internal xref">Section 5.1</a> to subsequent
-enumerations.<a href="#section-5-5" class="pilcrow">¶</a></p>
-<p id="section-5-6">The uncacheable dirent metadata attribute governs the client's
-caching of READDIR responses for the directory.  It does NOT govern:<a href="#section-5-6" class="pilcrow">¶</a></p>
+enumerations.<a href="#section-5-7" class="pilcrow">¶</a></p>
+<p id="section-5-8">The uncacheable dirent metadata attribute governs what an honoring
+client may report for a directory's entries.  It does NOT govern:<a href="#section-5-8" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-5-7.1">
-          <p id="section-5-7.1.1">The client's per-file attribute cache for individual children of
-the directory, populated by direct GETATTR (for example, following
-a LOOKUP).  Such caches are governed by the attribute-cache
-mechanisms already defined by NFSv4.2 and are subject to the same
-staleness from concurrent writes; clients in deployments using
-this attribute may wish to apply correspondingly short cache
-lifetimes to per-file attributes for children of the directory,
-but the present attribute does not require this.<a href="#section-5-7.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-5-9.1">
+          <p id="section-5-9.1.1">How long a value remains reportable between enumerations.  Attributes
+a client obtains for an individual entry at other times, by a direct
+GETATTR following a LOOKUP for example, remain governed between
+enumerations by the attribute-cache mechanisms already defined by
+NFSv4.2 and are subject to the same staleness from concurrent writes.
+The rule in <a href="#sec_dirents" class="auto internal xref">Section 5.1</a> applies at each enumeration and is
+indifferent to which operation last supplied a value.<a href="#section-5-9.1.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-5-7.2">
-          <p id="section-5-7.2.1">The directory's own attribute cache.  The directory object's own
+        <li class="normal" id="section-5-9.2">
+          <p id="section-5-9.2.1">The directory's own attribute cache.  The directory object's own
 attributes (mode, owner, etc.) can be cached normally and
-revalidated via the directory's change attribute as usual.<a href="#section-5-7.2.1" class="pilcrow">¶</a></p>
+revalidated via the directory's change attribute as usual.<a href="#section-5-9.2.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-5-7.3">
-          <p id="section-5-7.3.1">Operations that do not return file attributes in their response
+        <li class="normal" id="section-5-9.3">
+          <p id="section-5-9.3.1">Operations that do not return file attributes in their response
 (for example, LOOKUP without a following GETATTR, ACCESS).  These
-are unaffected.<a href="#section-5-7.3.1" class="pilcrow">¶</a></p>
+are unaffected.<a href="#section-5-9.3.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
-<p id="section-5-8">The uncacheable dirent metadata attribute addresses a different
+<p id="section-5-10">The uncacheable dirent metadata attribute addresses a different
 aspect of client-side caching than fattr4_uncacheable_file_data
 (<span>[<a href="#I-D.ietf-nfsv4-uncacheable-files" class="cite xref">I-D.ietf-nfsv4-uncacheable-files</a>]</span>).  The file data attribute
 governs caching of file contents, while the dirent metadata
-attribute governs caching of file attributes returned by READDIR.
-The attributes are independent and may be used separately.<a href="#section-5-8" class="pilcrow">¶</a></p>
-<p id="section-5-9">This attribute follows the same pattern as
+attribute governs what a client reports for the entries of a
+directory it enumerates.
+The attributes are independent and may be used separately.<a href="#section-5-10" class="pilcrow">¶</a></p>
+<p id="section-5-11">This attribute follows the same pattern as
 fattr4_uncacheable_file_data (<span>[<a href="#I-D.ietf-nfsv4-uncacheable-files" class="cite xref">I-D.ietf-nfsv4-uncacheable-files</a>]</span>)
-applied at the file-data layer.  In both cases:<a href="#section-5-9" class="pilcrow">¶</a></p>
+applied at the file-data layer.  In both cases:<a href="#section-5-11" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-5-10.1">
-          <p id="section-5-10.1.1">The underlying NFSv4.2 protocol permits client-side caching that
-can become stale.<a href="#section-5-10.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-5-12.1">
+          <p id="section-5-12.1.1">The underlying NFSv4.2 protocol permits client-side caching that
+can become stale.<a href="#section-5-12.1.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-5-10.2">
-          <p id="section-5-10.2.1">Client caching of the relevant data is widely implemented in
-practice and reduces network traffic for stable objects.<a href="#section-5-10.2.1" class="pilcrow">¶</a></p>
+        <li class="normal" id="section-5-12.2">
+          <p id="section-5-12.2.1">Client caching of the relevant data is widely implemented in
+practice and reduces network traffic for stable objects.<a href="#section-5-12.2.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-5-10.3">
-          <p id="section-5-10.3.1">For specific objects where the deployment knows the caching will
+        <li class="normal" id="section-5-12.3">
+          <p id="section-5-12.3.1">For specific objects where the deployment knows the caching will
 produce incorrect results, the server requires a mechanism to
-instruct an honoring client to suppress the caching for those
-specific objects.<a href="#section-5-10.3.1" class="pilcrow">¶</a></p>
+instruct an honoring client not to rely on it for those specific
+objects.<a href="#section-5-12.3.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-5-10.4">
-          <p id="section-5-10.4.1">The attribute does not redefine the legality of caching in the
+        <li class="normal" id="section-5-12.4">
+          <p id="section-5-12.4.1">The attribute does not redefine the legality of caching in the
 general case.  It is a per-object server-side signal that the
-caching is known to be unsuitable for that object.<a href="#section-5-10.4.1" class="pilcrow">¶</a></p>
+caching is known to be unsuitable for that object.<a href="#section-5-12.4.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
-<p id="section-5-11">The attribute does NOT make dirent metadata caching reliable for
+<p id="section-5-13">The attribute does NOT make dirent metadata caching reliable for
 directories where it is not set.  Clients <span class="bcp14">MUST NOT</span> interpret the
 absence of fattr4_uncacheable_dirent_metadata, or its value being
 false, as a guarantee that cached READDIR attributes are
@@ -1509,12 +1532,14 @@ staleness is particularly likely and particularly damaging.  The base
 specification separates the two concerns this attribute is often accused
 of conflating: <span>[<a href="#RFC8881" class="cite xref">RFC8881</a>]</span> Section 10.8.2 governs caching of the
 directory entries themselves, while Section 10.6 governs caching of the
-file attributes that arrive alongside them, and this attribute affects
-only the latter.<a href="#section-5-11" class="pilcrow">¶</a></p>
-<p id="section-5-12">This attribute does not define behavior for positive or negative
-name caching or for caching of LOOKUP results outside the scope of
-file attributes returned by READDIR.<a href="#section-5-12" class="pilcrow">¶</a></p>
-<p id="section-5-13">A directory delegation (<span>[<a href="#RFC8881" class="cite xref">RFC8881</a>]</span> Section 10.9) lets a client cache a
+file attributes that arrive alongside them.  This attribute leaves what
+a client may hold under either unchanged; it requires a READDIR for each
+enumeration and constrains what may be reported for an entry, as
+<a href="#sec_dirents" class="auto internal xref">Section 5.1</a> states.<a href="#section-5-13" class="pilcrow">¶</a></p>
+<p id="section-5-14">This attribute does not define behavior for positive or negative
+name caching, nor for LOOKUP results other than the file attributes
+it constrains an honoring client from reporting for an entry.<a href="#section-5-14" class="pilcrow">¶</a></p>
+<p id="section-5-15">A directory delegation (<span>[<a href="#RFC8881" class="cite xref">RFC8881</a>]</span> Section 10.9) lets a client cache a
 directory's entries and the directory's own attributes until the server
 recalls the delegation.  It is not recalled when the attributes of an
 entry within the directory change (<span>[<a href="#RFC8881" class="cite xref">RFC8881</a>]</span> Sections 10.9.2 and
@@ -1531,7 +1556,7 @@ Section 10.9.4 permits a server that finds a directory is causing too
 many notifications to decline to delegate it); and the
 dirent_notif_delay attribute lets a server bound or refuse
 child-attribute notification, so a client cannot rely on notification
-for freshness.<a href="#section-5-13" class="pilcrow">¶</a></p>
+for freshness.<a href="#section-5-15" class="pilcrow">¶</a></p>
 <div id="sec_dirents">
 <section id="section-5.1">
         <h3 id="name-uncacheable-dirent-metadata">
@@ -1559,40 +1584,47 @@ local server policy.<a href="#section-5.1-3" class="pilcrow">¶</a></p>
 <p id="section-5.1-4">If a directory object has the uncacheable dirent metadata attribute
 set, an honoring client <span class="bcp14">MUST NOT</span> satisfy a readdir of that directory
 from READDIR results obtained during a different enumeration, and <span class="bcp14">MUST NOT</span> report, for an entry, a value of a dirent metadata attribute that
-it received before the READDIR that most recently returned that entry.
-An honoring client therefore either names the attributes it will report
+it received before the READDIR that most recently returned that entry,
+whatever operation supplied that value.<a href="#section-5.1-4" class="pilcrow">¶</a></p>
+<p id="section-5.1-5">A client holding an OPEN_DELEGATE_WRITE delegation on a file the
+directory names may hold a size or change value more current than the
+server's, which the server obtains from it by CB_GETATTR (<span>[<a href="#RFC8881" class="cite xref">RFC8881</a>]</span>
+Section 10.4.3).  The requirement above is directed at values older
+than what the server would return, and does not require such a client
+to replace its own values with older ones.<a href="#section-5.1-5" class="pilcrow">¶</a></p>
+<p id="section-5.1-6">An honoring client therefore either names the attributes it will report
 in that READDIR's attr_request, or obtains them afterwards; a value it
-held beforehand is not usable for that entry.<a href="#section-5.1-4" class="pilcrow">¶</a></p>
-<p id="section-5.1-5">In this document a readdir is a directory-read request made by an
-application, however the client's interface batches entries, and an
-enumeration is one pass over a directory: the readdirs of that pass and
-the READDIRs the client issues to satisfy them.  A READDIR ordinarily
-supplies enough entries for many readdirs, so the requirement above is
-scoped to the enumeration a readdir belongs to and not to a READDIR per
-readdir.<a href="#section-5.1-5" class="pilcrow">¶</a></p>
-<p id="section-5.1-6">Entries and metadata carried by the READDIRs of a single enumeration
-<span class="bcp14">MAY</span> be retained until that enumeration completes.  <span>[<a href="#RFC8881" class="cite xref">RFC8881</a>]</span> Section
+held beforehand is not usable for that entry.  An honoring client <span class="bcp14">SHOULD</span>
+name them in attr_request: obtaining them afterwards costs one GETATTR
+per entry, which is the traffic the deployments of
+<a href="#deployment-motivation" class="auto internal xref">Section 2</a> use this attribute to avoid.<a href="#section-5.1-6" class="pilcrow">¶</a></p>
+<p id="section-5.1-7">Entries carried by the READDIRs of a single enumeration <span class="bcp14">MAY</span> be
+retained until that enumeration completes, and their metadata <span class="bcp14">MAY</span> be
+retained after it: what bounds the reporting of that metadata is the
+next enumeration, under the rule above, and the attribute-cache
+mechanisms of <span>[<a href="#RFC8881" class="cite xref">RFC8881</a>]</span> Section 10.6 until then.  <span>[<a href="#RFC8881" class="cite xref">RFC8881</a>]</span> Section
 10.8.2 requires such a cache to be a consistent snapshot of directory
 contents, validated by the directory's change attribute; because that
 attribute does not move when a file the directory names is written, it
 provides no corresponding guarantee for the entries' file attributes,
-which are as of the READDIR that carried them.<a href="#section-5.1-6" class="pilcrow">¶</a></p>
-<p id="section-5.1-7">The uncacheable dirent metadata attribute does not modify the
+which are as of the READDIR that carried them.<a href="#section-5.1-7" class="pilcrow">¶</a></p>
+<p id="section-5.1-8">The uncacheable dirent metadata attribute does not modify the
 semantics of the NFSv4.2 change attribute.  Clients <span class="bcp14">MUST</span> continue to
 use the change attribute to detect directory modifications and to
-determine when directory contents may have changed, even when
-dirent metadata caching is suppressed.  Suppressing caching
-of dirent metadata does not remove the need for change-based
-validation.<a href="#section-5.1-7" class="pilcrow">¶</a></p>
-<p id="section-5.1-8">This attribute is advisory, so servers <span class="bcp14">SHOULD NOT</span> rely on it for
+determine when directory contents may have changed, even for a
+directory on which this attribute is set.  Constraining what an
+honoring client may report for an entry does not remove the need for
+change-based validation.<a href="#section-5.1-8" class="pilcrow">¶</a></p>
+<p id="section-5.1-9">This attribute is advisory, so servers <span class="bcp14">SHOULD NOT</span> rely on it for
 correctness: a client that does not implement it, or that declines to
-enforce it, may continue to cache dirent metadata.  A server cannot
-distinguish those clients from honoring ones.  Observing a GETATTR or
-a SETATTR of the attribute shows only that a client knows the
-attribute exists, not that it enforces the always-refetch rule, so
-such a request is not a basis for treating that client's caching as
-suppressed.<a href="#section-5.1-8" class="pilcrow">¶</a></p>
-<p id="section-5.1-9">A directory delegation would let a client serve dirent
+enforce it, may continue to report dirent metadata from a value it
+held before the READDIR that most recently returned the entry.  A
+server cannot distinguish those clients from honoring ones.  Observing
+a GETATTR or a SETATTR of the attribute shows only that a client knows
+the attribute exists, not that it enforces the rule of
+<a href="#sec_dirents" class="auto internal xref">Section 5.1</a>, so such a request is not a basis for assuming it
+does.<a href="#section-5.1-9" class="pilcrow">¶</a></p>
+<p id="section-5.1-10">A directory delegation would let a client serve dirent
 metadata from its cache without refetching, which is incompatible with
 the always-refetch rule this attribute defines.  Accordingly, if a
 directory has the uncacheable dirent metadata attribute set and an
@@ -1600,7 +1632,7 @@ outstanding directory delegation, the server <span class="bcp14">MUST</span> rec
 delegation, after which the client follows the always-refetch rule on
 each subsequent readdir.  A server <span class="bcp14">MUST NOT</span> grant a new directory
 delegation on a directory while the uncacheable dirent metadata
-attribute is set on that directory.<a href="#section-5.1-9" class="pilcrow">¶</a></p>
+attribute is set on that directory.<a href="#section-5.1-10" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -1742,10 +1774,10 @@ received before the READDIR that most recently returned them.<a href="#section-6
 <p id="section-6.3-1">This example demonstrates that the uncacheable dirent metadata
 attribute does not mandate a particular client implementation, but
 it does require the always-refetch behavior specified in
-<a href="#sec_dirents" class="auto internal xref">Section 5.1</a>.  The attribute ensures that NFSv4.2 clients observe
-file attribute values reflecting the current state of the server in
-deployments where staleness of READDIR-returned attributes is known
-to be a recurring problem.<a href="#section-6.3-1" class="pilcrow">¶</a></p>
+<a href="#sec_dirents" class="auto internal xref">Section 5.1</a>.  The attribute ensures that an honoring client's report
+of an entry's attributes reflects the server's state as of the
+enumeration that returned it, in deployments where staleness of
+READDIR-returned attributes is known to be a recurring problem.<a href="#section-6.3-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -1768,11 +1800,18 @@ the fattr4_uncacheable_dirent_metadata attribute.<a href="#section-7-3" class="p
 per-inode flag (nfsi-&gt;uncacheable_dirent_metadata, declared in
 include/linux/nfs_fs.h).  The readdir path in fs/nfs/dir.c consults
 this flag to skip the readdir cache and refetch from the
-server on each readdir call.  Clients may employ more sophisticated
+server on each readdir call that is not already at end of directory.
+It also forces the client onto its attribute-returning READDIR path for
+such a directory, where the server has been found capable of it: a
+READDIR that returns only names would refresh the
+entries but leave their attributes to the client's attribute caches, and
+the
+cache-bypassing path above never accrues the cache usage that would
+otherwise select that path for the continuation READDIRs of a large
+directory.  Clients may employ more sophisticated
 mechanisms, such as time-limited caches that revalidate against the
 server on each READDIR, provided that the externally observable
-behavior matches the always-refetch semantics described in this
-document.<a href="#section-7-4" class="pilcrow">¶</a></p>
+behavior satisfies <a href="#sec_dirents" class="auto internal xref">Section 5.1</a>.<a href="#section-7-4" class="pilcrow">¶</a></p>
 <p id="section-7-5">The Linux client implementation encodes this attribute as a flag
 distinct from the companion file-data attribute defined in
 <span>[<a href="#I-D.ietf-nfsv4-uncacheable-files" class="cite xref">I-D.ietf-nfsv4-uncacheable-files</a>]</span>; the two attributes are separated
@@ -1865,8 +1904,8 @@ Labeled NFS (see <span>[<a href="#RFC7204" class="cite xref">RFC7204</a>]</span>
 for the NFSv4.2 mechanism) are the same whether dirent metadata is
 refetched or served from a cache.<a href="#section-10-4" class="pilcrow">¶</a></p>
 <p id="section-10-5">The uncacheable dirent metadata attribute allows servers to indicate
-that dirent metadata should not be assumed to remain valid
-beyond the READDIR that produced it.<a href="#section-10-5" class="pilcrow">¶</a></p>
+that dirent metadata should not be assumed to remain valid across
+enumerations of the directory.<a href="#section-10-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="iana-considerations">
