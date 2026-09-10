@@ -367,7 +367,15 @@ for freshness.
 The fattr4_uncacheable_dirent_metadata attribute is a read-write boolean
 attribute that applies to directory objects.
 Authorization to query or modify this attribute is governed by
-existing NFSv4.2 authorization mechanisms.
+existing NFSv4.2 authorization mechanisms.  {{tab_attr}} summarizes
+the attribute using the columns of {{RFC7862}} Section 12.1, where
+"R W" indicates that GETATTR may retrieve the attribute and SETATTR
+may set it.
+
+| Name                        | Id | Data Type | Acc |
+|-----------------------------|----|-----------|-----|
+| uncacheable_dirent_metadata | 88 | bool      | R W |
+{: #tab_attr title="New RECOMMENDED Attribute"}
 
 The attribute applies only to directory objects.  A server that
 receives a GETATTR requesting fattr4_uncacheable_dirent_metadata on an
