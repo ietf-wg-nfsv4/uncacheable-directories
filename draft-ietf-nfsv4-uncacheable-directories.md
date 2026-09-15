@@ -28,6 +28,15 @@ normative:
   RFC8881:
 
 informative:
+  POSIX:
+    title: "IEEE Standard for Information Technology--Portable Operating System Interface (POSIX) Base Specifications, Issue 8"
+    author:
+    - org: IEEE
+    - org: The Open Group
+    seriesinfo:
+      IEEE: Std 1003.1-2024
+    date: 2024
+    target: https://standards.ieee.org/ieee/1003.1/7700/
   I-D.ietf-nfsv4-uncacheable-files:
   RFC7204:
 --- abstract
@@ -632,7 +641,8 @@ This document contains the external data representation (XDR)
 {{RFC4506}} description of the uncacheable dirent metadata attribute.  The XDR
 description is presented in a manner that facilitates easy extraction
 into a ready-to-compile format. To extract the machine-readable XDR
-description, use the following shell script:
+description, use the following shell script, which relies on the sh, grep,
+and sed utilities as specified by {{POSIX}}:
 
 ~~~ shell
 #!/bin/sh
