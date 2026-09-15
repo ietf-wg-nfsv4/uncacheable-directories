@@ -4,8 +4,8 @@
 
 Network File System Version 4                                  T. Haynes
 Internet-Draft                                               Hammerspace
-Intended status: Standards Track                        3 September 2026
-Expires: 7 March 2027
+Intended status: Standards Track                       15 September 2026
+Expires: 19 March 2027
 
 
        Adding an Uncacheable Dirent Metadata Attribute to NFSv4.2
@@ -54,7 +54,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 7 March 2027.
+   This Internet-Draft will expire on 19 March 2027.
 
 Copyright Notice
 
@@ -398,7 +398,17 @@ Table of Contents
    The fattr4_uncacheable_dirent_metadata attribute is a read-write
    boolean attribute that applies to directory objects.  Authorization
    to query or modify this attribute is governed by existing NFSv4.2
-   authorization mechanisms.
+   authorization mechanisms.  Table 1 summarizes the attribute using the
+   columns of [RFC7862] Section 12.1, where "R W" indicates that GETATTR
+   may retrieve the attribute and SETATTR may set it.
+
+          +=============================+====+===========+=====+
+          | Name                        | Id | Data Type | Acc |
+          +=============================+====+===========+=====+
+          | uncacheable_dirent_metadata | 88 | bool      | R W |
+          +-----------------------------+----+-----------+-----+
+
+                    Table 1: New RECOMMENDED Attribute
 
    The attribute applies only to directory objects.  A server that
    receives a GETATTR requesting fattr4_uncacheable_dirent_metadata on
@@ -652,7 +662,8 @@ Table of Contents
    [RFC4506] description of the uncacheable dirent metadata attribute.
    The XDR description is presented in a manner that facilitates easy
    extraction into a ready-to-compile format.  To extract the machine-
-   readable XDR description, use the following shell script:
+   readable XDR description, use the following shell script, which
+   relies on the sh, grep, and sed utilities as specified by [POSIX]:
 
    #!/bin/sh
    grep '^ *///' $* | sed 's?^ */// ??' | sed 's?^ *///$??'
@@ -757,9 +768,14 @@ Table of Contents
    [I-D.ietf-nfsv4-uncacheable-files]
               Haynes, T., "Adding an Uncacheable File Data Attribute to
               NFSv4.2", Work in Progress, Internet-Draft, draft-ietf-
-              nfsv4-uncacheable-files-12, 1 September 2026,
+              nfsv4-uncacheable-files-14, 15 September 2026,
               <https://datatracker.ietf.org/doc/html/draft-ietf-nfsv4-
-              uncacheable-files-12>.
+              uncacheable-files-14>.
+
+   [POSIX]    IEEE and The Open Group, "IEEE Standard for Information
+              Technology--Portable Operating System Interface (POSIX)
+              Base Specifications, Issue 8", IEEE Std 1003.1-2024, 2024,
+              <https://standards.ieee.org/ieee/1003.1/7700/>.
 
    [RFC7204]  Haynes, T., "Requirements for Labeled NFS", RFC 7204,
               DOI 10.17487/RFC7204, April 2014,
