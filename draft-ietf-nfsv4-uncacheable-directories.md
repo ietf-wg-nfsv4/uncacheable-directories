@@ -458,8 +458,8 @@ metadata from its cache without refetching, which is incompatible with
 the always-refetch rule this attribute defines.  Accordingly, if a
 directory has the uncacheable dirent metadata attribute set and an
 outstanding directory delegation, the server MUST recall the
-delegation, after which the client follows the always-refetch rule on
-each subsequent readdir.  A server MUST NOT grant a new directory
+delegation, after which the client is subject to {{sec_dirents}} on
+each subsequent enumeration.  A server MUST NOT grant a new directory
 delegation on a directory while the uncacheable dirent metadata
 attribute is set on that directory.
 
