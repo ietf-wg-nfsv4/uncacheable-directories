@@ -588,9 +588,9 @@ Note to RFC Editor: please remove this section prior to publication.
 
 There is a prototype Hammerspace server which implements the
 uncacheable dirent metadata attribute and a prototype Linux client
-which treats the attribute as an indication to retrieve directory-
-entry metadata from the server on each READDIR rather than from a
-local cache.
+which treats the attribute as an indication to satisfy each
+enumeration of such a directory with a READDIR that requests the
+entries' attributes, rather than from its readdir cache.
 
 In the prototype, directories whose contents change at the server
 at a rate exceeding typical client cache lifetimes are marked with
