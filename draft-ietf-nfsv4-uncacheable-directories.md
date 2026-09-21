@@ -392,9 +392,8 @@ object that is not a directory MUST return FALSE: support for an
 attribute is advertised per file system ({{RFC8881}} Section 5.8.1.1),
 so a server that supports this attribute supports it for every object
 in that file system and owes a value for each ({{RFC8881}} Section
-18.7.3).  As with rawdev ({{RFC8881}} Section 5.8.2.31), the value
-SHOULD NOT be considered useful for an object the attribute does not
-describe.  A server that receives a SETATTR requesting
+18.7.3).  As with rawdev ({{RFC8881}} Section 5.8.2.31), the value is
+not useful for an object the attribute does not describe.  A server that receives a SETATTR requesting
 fattr4_uncacheable_dirent_metadata on an object that is not a directory
 MUST return NFS4ERR_WRONG_TYPE ({{RFC8881}} Section 15.1.2.9).
 
