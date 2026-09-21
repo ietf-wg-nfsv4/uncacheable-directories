@@ -463,6 +463,25 @@ each subsequent enumeration.  A server MUST NOT grant a new directory
 delegation on a directory while the uncacheable dirent metadata
 attribute is set on that directory.
 
+## Parallel NFS {#sec_pnfs}
+
+The uncacheable dirent metadata attribute is an attribute of the
+directory, and a pNFS client ({{RFC8881}} Section 12) obtains it, and
+the entries it governs, from the metadata server: GETATTR and READDIR
+are directed to the metadata server, never to a storage device
+({{RFC8881}} Section 13.6).  Whether the files an entry names are read
+or written through a layout therefore does not change what
+{{sec_dirents}} requires of an honoring client.
+
+What those values reflect is a separate question, and one the layout
+type answers.  Where a client writes to a storage device and the
+metadata server learns the resulting size and time_modify only on
+LAYOUTCOMMIT ({{RFC8881}} Section 12.5.4), a READDIR issued before
+that LAYOUTCOMMIT returns the earlier values, and an honoring client
+reports them.  The attribute removes the staleness a client's own
+cache introduces; it does not make the metadata server report what it
+has not yet been told.
+
 # Example: Directory Enumeration With and Without Dirent Metadata Caching
 
 This example illustrates the difference in client-visible behavior when
