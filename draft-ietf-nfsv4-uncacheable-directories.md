@@ -418,10 +418,14 @@ to replace its own values with older ones.
 
 An honoring client therefore either names the attributes it will report
 in that READDIR's attr_request, or obtains them afterwards; a value it
-held beforehand is not usable for that entry.  An honoring client SHOULD
-name them in attr_request: obtaining them afterwards costs one GETATTR
-per entry, which is the traffic the deployments of
-{{deployment-motivation}} use this attribute to avoid.
+held beforehand is not usable for that entry.  An honoring client
+SHOULD name them in attr_request.  For a listing or a
+directory-tree synchronization pass, which reads the size and
+time_modify of every entry, obtaining them afterwards instead costs
+one GETATTR per entry, which is the traffic the deployments of
+{{deployment-motivation}} use this attribute to avoid.  A client that
+knows no such read will follow may still obtain them afterwards, at
+that cost where one does.
 
 Entries carried by the READDIRs of a single enumeration MAY be
 retained until that enumeration completes, and their metadata MAY be
