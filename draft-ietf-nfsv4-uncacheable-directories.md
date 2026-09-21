@@ -140,9 +140,9 @@ on each enumeration.
 The fattr4_uncacheable_dirent_metadata attribute is the server's
 mechanism to identify a directory for which this risk is high
 enough that client-side caching is not safe.  When the server sets
-the attribute on a directory, an honoring client retrieves
-dirent metadata from the server on each READDIR rather
-than from a local cache.
+the attribute on a directory, an honoring client goes to the server
+for each enumeration and does not report an entry's attributes from a
+value it held before that READDIR.
 
 # Definitions
 
