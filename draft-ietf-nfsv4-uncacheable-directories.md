@@ -717,10 +717,6 @@ Labeled NFS (see {{RFC7204}} for background, and {{RFC7862}} Section 9
 for the NFSv4.2 mechanism) are the same whether dirent metadata is
 refetched or served from a cache.
 
-The uncacheable dirent metadata attribute allows servers to indicate
-that dirent metadata should not be assumed to remain valid across
-enumerations of the directory.
-
 # IANA Considerations
 
 This document has no IANA actions.
