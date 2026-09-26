@@ -50,9 +50,9 @@ stale when another client changes one of those files.  In some
 deployments this produces incorrect size and timestamp values often
 enough to be a problem.  This document introduces an
 uncacheable dirent metadata attribute for NFSv4.2 that allows a
-server to identify a directory for which an honoring client goes to
-the server for each enumeration, and does not report an entry's
-attributes from a value it held before that READDIR.
+server to identify a directory for which an honoring client
+enumerates by READDIR and reports each entry's attributes as that
+READDIR returned them, rather than from a value it held earlier.
 
 --- note_Note_to_Readers
 
@@ -96,8 +96,10 @@ applications can observe inconsistent metadata and data views even
 when file data caching is disabled.
 
 This document introduces the uncacheable dirent metadata attribute
-to NFSv4.2 to allow servers to identify the directories for which
-reporting dirent metadata a client held beforehand is unsuitable.
+to NFSv4.2 to allow servers to identify the directories for which an
+honoring client reports each entry's attributes as the READDIR that
+returned the entry supplied them, rather than from a value it held
+earlier.
 Using the process detailed in {{RFC8178}}, the revisions in this
 document become an extension
 of NFSv4.2 {{RFC7862}}.  They are built on top of the external data
