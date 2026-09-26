@@ -100,10 +100,12 @@ to NFSv4.2 to allow servers to identify the directories for which an
 honoring client reports each entry's attributes as the READDIR that
 returned the entry supplied them, rather than from a value it held
 earlier.
-Using the process detailed in {{RFC8178}}, the revisions in this
-document become an extension
-of NFSv4.2 {{RFC7862}}.  They are built on top of the external data
-representation (XDR) {{RFC4506}} generated from {{RFC7863}}.
+Using the process described in {{RFC8178}} Section 6, this document
+extends NFSv4.2 {{RFC7862}}; as that section provides, it does not
+update {{RFC7862}}, which remains a valid description of the base
+variant of the minor version.  The revisions are built on top of the
+external data representation (XDR) {{RFC4506}} generated from
+{{RFC7863}}.
 
 # Deployment Motivation {#deployment-motivation}
 
