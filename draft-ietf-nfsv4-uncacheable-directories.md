@@ -242,6 +242,19 @@ enumeration and does not report an entry's attributes from a value it
 held before that READDIR.  {{sec_dirents}} states the requirement
 normatively.
 
+That requirement has two halves.  Each enumeration of such a directory
+is satisfied by a READDIR rather than from the results of an earlier
+one, and the attributes that READDIR returns displace any the client
+held for the entries it returned.  The first half is the one that
+changes what a client may do today: {{RFC8881}} Section 10.8.2 lets a
+client answer an application readdir from a cached snapshot validated
+by the directory's change attribute, with no READDIR on the wire at
+all, and that change attribute does not move when a file the directory
+names is written.  The second half alone would not close the gap,
+since a client could satisfy it by sending a READDIR with a minimal
+attr_request and reporting the entries' attributes from what it
+already held.
+
 It adds no constraint on the objects the entries name: an honoring
 client may continue to hold the dirents themselves, validated by the
 directory's change attribute as it would be for any other directory.
