@@ -500,9 +500,11 @@ attribute is set on that directory.
 
 The uncacheable dirent metadata attribute is an attribute of the
 directory, and a pNFS client ({{RFC8881}} Section 12) obtains it, and
-the entries it governs, from the metadata server: GETATTR and READDIR
-are directed to the metadata server, never to a storage device
-({{RFC8881}} Section 13.6).  Whether the files an entry names are read
+the entries it governs, from the metadata server.  A storage device
+serves data, not attributes: the file layout, for example, admits only
+READ, WRITE, COMMIT and housekeeping operations on a data server
+({{RFC8881}} Section 13.6), and a layout whose storage protocol is not
+NFS has no GETATTR or READDIR to send.  Whether the files an entry names are read
 or written through a layout therefore does not change what
 {{sec_dirents}} requires of an honoring client.
 
