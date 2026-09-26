@@ -133,6 +133,14 @@ for the children of a particular directory should be refreshed each time
 the directory is enumerated; mount options shorten attribute cache
 lifetimes out of band and per client, not per directory.
 
+Nor can a client work out for itself which directories those are.  The
+directory's change attribute is the only per-directory signal it has,
+and that attribute does not move when a file the directory names is
+written, so it reads the same for a directory receiving writes from a
+thousand nodes and for one nobody is touching.  Lacking any basis for
+a per-directory choice, a client is left applying one attribute-cache
+policy across the whole mount.
+
 The staleness has correctness consequences, not merely cosmetic ones.
 An incremental backup or a directory-tree synchronization pass that
 decides what to copy from the size and time_modify reported for each
