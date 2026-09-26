@@ -120,8 +120,9 @@ document covers the whole class defined in {{sec_definitions}} --
 modified at a high rate by clients other than the one performing
 READDIR.
 
-{{RFC8881}} Section 10.6 permits a client to cache the file attributes
-returned by READDIR on the same basis as attributes obtained by GETATTR:
+{{RFC8881}} Section 10.6 permits a client that requested the full set
+of attributes to be cached in a READDIR to cache what it returned on
+the same basis as attributes obtained by GETATTR:
 cached per file, bounded by an upper time boundary, and revalidated
 against that file's change attribute.  In a directory receiving writes
 from thousands of compute nodes, any nonzero cache lifetime yields stale
@@ -308,8 +309,9 @@ Two ordinary mechanisms bound that delay: the client's cached
 attributes for the directory expire under the upper time boundary
 described in {{RFC8881}} Section 10.6, and a client revalidating a
 cached directory inspects the directory's change attribute
-({{RFC8881}} Section 10.8.2), which moves when a server sets or clears
-this one.  Clients are expected to observe the change through those
+({{RFC8881}} Section 10.8.2), and that attribute changes whenever the
+object it describes is modified ({{RFC8881}} Section 5.8.1.4),
+including by a SETATTR of this one.  Clients are expected to observe the change through those
 mechanisms and to apply the rule in {{sec_dirents}} to subsequent
 enumerations.
 
