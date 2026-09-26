@@ -464,15 +464,6 @@ attribute does not move when a file the directory names is written, it
 provides no corresponding guarantee for the entries' file attributes,
 which are as of the READDIR that carried them.
 
-A client that compares the change attribute in a fattr4 against the
-value it holds for the file, and accepts the rest of the fattr4 only if
-the arriving value is newer, applies that comparison to a READDIR
-response like any other.  The file's change attribute is itself a
-dirent metadata attribute ({{sec_definitions}}), so for an entry the
-READDIR returned it is the arriving value that the client reports, and
-a client that kept an older one would reject the very attributes the
-rule requires it to report.
-
 The uncacheable dirent metadata attribute does not modify the
 semantics of the NFSv4.2 change attribute, and does not make any
 change attribute the trigger for the rule above: the event that
