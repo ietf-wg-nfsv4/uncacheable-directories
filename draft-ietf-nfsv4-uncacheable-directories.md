@@ -439,6 +439,24 @@ not useful for an object the attribute does not describe.  A server that receive
 fattr4_uncacheable_dirent_metadata on an object that is not a directory
 MUST return NFS4ERR_WRONG_TYPE ({{RFC8881}} Section 15.1.2.9).
 
+Whether a SETATTR of the attribute is permitted at all is subject to
+server policy: the server decides, on grounds such as administrative
+configuration, export policy, or access control.  A request that is
+not permitted MUST be rejected with NFS4ERR_ACCESS ({{RFC8881}} Section
+15.1.6.1) or, where the refusal is because the requester is neither the
+owner nor a privileged user, NFS4ERR_PERM ({{RFC8881}} Section
+15.1.6.2).  A server that supports the attribute MUST NOT refuse such a
+request with NFS4ERR_INVAL: {{RFC8178}} Section 4.4.3 reserves that
+response to a SETATTR of the attribute for a server with no knowledge
+of it, and a client probing for support would take the refusal as
+ignorance.
+
+This document does not require a server to implement any particular
+policy, nor any particular means of configuring one.  A server that
+always permits, or always refuses, requests to set or clear the
+attribute conforms to this document; what the protocol requires is
+only the error returned when a request is refused.
+
 This attribute is set per directory.  This document does not define
 propagation of the attribute to subdirectories created within a
 directory on which it is set; any such inheritance is a matter of
