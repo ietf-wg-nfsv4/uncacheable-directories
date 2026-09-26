@@ -766,9 +766,8 @@ describes.
 
 Authorization to set or modify the fattr4_uncacheable_dirent_metadata
 attribute is governed by existing NFSv4.2 authorization mechanisms.
-Servers MAY restrict modification of this attribute based on local
-policy, file ownership, or access control rules.  This document does
-not define a new authorization model.
+{{sec_dirents}} states what a server returns for a request its policy
+refuses.  This document does not define a new authorization model.
 
 Because the attribute is visible to and affects the caching behavior
 of all honoring clients, servers should consider the implications of
