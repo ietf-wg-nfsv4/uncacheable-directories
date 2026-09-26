@@ -231,6 +231,17 @@ uncacheable dirent metadata attribute
   metadata, such as size and timestamps, from a value held before the
   READDIR that most recently returned the entry it describes.
 
+revalidation
+
+: The procedure of {{RFC8881}} Section 10.3.1 by which a client
+determines whether something it holds in a cache is still current: the
+client fetches the change attribute of the object from the server,
+compares it with the value it cached, and, if they differ, treats what
+it cached as invalid.  A client validates when it fetches from the
+server; it revalidates before reusing what it cached.  For a cached
+directory the attribute compared is the directory's own
+({{RFC8881}} Section 10.8.2).
+
 honoring client
 
 : A client that implements this attribute and enforces the
