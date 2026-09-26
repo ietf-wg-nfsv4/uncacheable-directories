@@ -454,9 +454,12 @@ provides no corresponding guarantee for the entries' file attributes,
 which are as of the READDIR that carried them.
 
 The uncacheable dirent metadata attribute does not modify the
-semantics of the NFSv4.2 change attribute.  Clients MUST continue to
-use the change attribute to detect directory modifications and to
-determine when directory contents may have changed, even for a
+semantics of the NFSv4.2 change attribute, and does not make any
+change attribute the trigger for the rule above: the event that
+renders a held value unreportable for an entry is the enumeration that
+returns that entry, whatever any change attribute does.  Clients MUST
+continue to use the change attribute to detect directory modifications
+and to determine when directory contents may have changed, even for a
 directory on which this attribute is set.  Constraining what an
 honoring client may report for an entry does not remove the need for
 change-based validation.
