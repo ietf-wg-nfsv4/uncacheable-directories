@@ -255,8 +255,9 @@ normatively.
 
 That requirement has two halves.  Each enumeration of such a directory
 is satisfied by a READDIR rather than from the results of an earlier
-one, and the attributes that READDIR returns displace any the client
-held for the entries it returned.  The first half is the one that
+one, and what the client reports for an entry that READDIR returned is
+what that READDIR supplied, rather than a value held beforehand.  The
+first half is the one that
 changes what a client may do today: {{RFC8881}} Section 10.8.2 lets a
 client answer an application readdir from a cached snapshot validated
 by the directory's change attribute, with no READDIR on the wire at
