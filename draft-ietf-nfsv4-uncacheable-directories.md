@@ -774,9 +774,7 @@ of all honoring clients, servers should consider the implications of
 allowing unprivileged users to set or clear it.  Setting the attribute
 on a directory forces honoring clients to abandon READDIR caching and
 refetch dirent metadata on every enumeration, which can
-increase load on the server and on other clients.  A server MAY
-restrict modification of the attribute based on administrative
-configuration, export policy, or ownership.
+increase load on the server and on other clients.
 
 This attribute does not change the semantics of sec_label or the
 enforcement of MAC security policies.  A client's obligations under
