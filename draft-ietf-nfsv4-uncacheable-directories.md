@@ -115,8 +115,10 @@ output directory may receive results from hundreds or thousands of
 compute nodes simultaneously, and of large-scale data-ingest
 pipelines where many producers append to a common landing
 directory.  The files within such a directory have their attributes
--- size and timestamps in particular -- modified at a high rate by
-clients other than the one performing READDIR.
+-- size and timestamps in particular, though the attribute of this
+document covers the whole class defined in {{sec_definitions}} --
+modified at a high rate by clients other than the one performing
+READDIR.
 
 {{RFC8881}} Section 10.6 permits a client to cache the file attributes
 returned by READDIR on the same basis as attributes obtained by GETATTR:
@@ -146,7 +148,7 @@ the attribute on a directory, an honoring client goes to the server
 for each enumeration and does not report an entry's attributes from a
 value it held before that READDIR.
 
-# Definitions
+# Definitions {#sec_definitions}
 
 readdir
 
@@ -172,12 +174,13 @@ include the file attributes returned alongside it.
 
 dirent metadata
 
-: The file attributes (size, time_modify, time_metadata,
-time_access, mode, owner, etc.) that a READDIR response can return
-alongside each dirent, whether or not a particular response carried
-them.  These attributes belong to the underlying file
-object, not to the directory; they change when the underlying file is
-written, which is independent of the directory's change attribute.
+: The file attributes that a READDIR response can return alongside
+each dirent, whether or not a particular response carried them --
+including size, time_modify, time_metadata, time_access, mode, owner,
+and the file's own change attribute.  These attributes belong to the
+underlying file object, not to the directory; they change when the
+underlying file is written, which is independent of the directory's
+change attribute.
 The term "dirent metadata" in this document is a naming convenience
 for "the file attributes a READDIR response carries alongside an
 entry"; it names that class of attributes, not the subset a given
@@ -452,6 +455,15 @@ contents, validated by the directory's change attribute; because that
 attribute does not move when a file the directory names is written, it
 provides no corresponding guarantee for the entries' file attributes,
 which are as of the READDIR that carried them.
+
+A client that compares the change attribute in a fattr4 against the
+value it holds for the file, and accepts the rest of the fattr4 only if
+the arriving value is newer, applies that comparison to a READDIR
+response like any other.  The file's change attribute is itself a
+dirent metadata attribute ({{sec_definitions}}), so for an entry the
+READDIR returned it is the arriving value that the client reports, and
+a client that kept an older one would reject the very attributes the
+rule requires it to report.
 
 The uncacheable dirent metadata attribute does not modify the
 semantics of the NFSv4.2 change attribute, and does not make any
